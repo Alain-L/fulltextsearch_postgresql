@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Alain Lesage
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    name: manifeste, licences et syntaxe
+    steps:
+      - uses: actions/checkout@v4
+      - run: make check
+
+  test:
+    runs-on: ubuntu-latest
+    name: extraction PDF et Office
+    steps:
+      - uses: actions/checkout@v4
+      - run: make test

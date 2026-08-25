@@ -1,0 +1,17 @@
+# What stays out of the distribution archive (git archive / App Store):
+# tests and development tooling
+# have no business in an app installed on a server.
+/tests           export-ignore
+/.validate       export-ignore
+/.github         export-ignore
+/.gitattributes  export-ignore
+/.gitignore      export-ignore
+/AGENTS.md       export-ignore
+/CLAUDE.md       export-ignore
+/REUSE.toml      export-ignore
+/Makefile        export-ignore
+
+# Line endings normalized, whatever system the contributor works on.
+* text=auto eol=lf
+*.png binary
+*.jpg binary

@@ -1,0 +1,22 @@
+# Benchmark rig and design notes: kept locally, out of the repository.
+bench/
+docs/
+
+.DS_Store
+*.log
+
+# Original context brief: stays local, it carries personal context.
+PROMPT.md
+
+# Build and validation output
+build/
+.validate/
+
+# Cached validation schema
+.info.xsd
+
+# Internal working instructions: they describe a method, not the product
+AGENTS.md
+CLAUDE.md
+__pycache__/
+*.pyc

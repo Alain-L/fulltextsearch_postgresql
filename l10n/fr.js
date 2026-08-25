@@ -1,0 +1,18 @@
+OC.L10N.register(
+    "fulltextsearch_postgresql",
+    {
+    "Full text search with PostgreSQL" : "Recherche plein-texte avec PostgreSQL",
+    "Cannot read the text search configurations. Is this Nextcloud running on PostgreSQL?" : "Impossible de lire les configurations de recherche. Ce Nextcloud fonctionne-t-il sur PostgreSQL ?",
+    "Follow the language of this Nextcloud instance" : "Suivre la langue de cette instance Nextcloud",
+    "Save" : "Enregistrer",
+    "Could not save." : "Impossible d'enregistrer.",
+    "Saved." : "Enregistré.",
+    "The index has been rebuilt. To fill it again, run: occ fulltextsearch:reset && occ fulltextsearch:index" : "L'index a été reconstruit. Pour le remplir à nouveau, lancez : occ fulltextsearch:reset && occ fulltextsearch:index",
+    "The language decides how words are reduced to their stem, which accents are folded, and which words are ignored." : "La langue détermine comment les mots sont ramenés à leur racine, quels accents sont repliés et quels mots sont ignorés.",
+    "Indexing languages" : "Langues d'indexation",
+    "Add a language…" : "Ajouter une langue…",
+    "Add a second one only for a genuinely bilingual corpus: each language grows the index by roughly 20%%." : "N'en ajoutez une seconde que pour un corpus réellement bilingue : chaque langue fait croître l'index d'environ 20%%.",
+    "Remove" : "Retirer",
+    "Add at least one language." : "Ajoutez au moins une langue."
+},
+"nplurals=2; plural=(n > 1);");

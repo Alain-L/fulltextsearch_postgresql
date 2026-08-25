@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!--
+  - SPDX-FileCopyrightText: 2026 Alain Lesage
+  - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+	<id>fulltextsearch_postgresql</id>
+	<name>Full text search - PostgreSQL Platform</name>
+	<name lang="fr">Recherche plein-texte - Plateforme PostgreSQL</name>
+	<summary>Index and search with PostgreSQL — multilingual, no JVM</summary>
+	<summary lang="fr">Indexation et recherche avec PostgreSQL — multilingue, sans JVM</summary>
+	<description><![CDATA[
+A search platform for the **Full text search** app: it keeps the index in **PostgreSQL**, the
+database your Nextcloud already runs on.
+
+- **No extra service** to install, monitor or back up, and no JVM.
+- **Language-aware indexing**, with an accent-folding variant so "numerisation" finds
+  "numérisation". Follows your instance language; several can be combined.
+- **PDF and Office content extracted by the app** — no external extraction service.
+- **Access rights enforced in SQL**: owner, users, groups and circles.
+
+Requires the **Full text search** app and a content provider such as **Full text search - Files**, plus PostgreSQL. The `unaccent` and `pg_trgm` extensions are strongly recommended; without
+them the app still works, with reduced quality and speed.
+]]>
+	</description>
+	<description lang="fr"><![CDATA[
+Une plateforme de recherche pour l'application **Recherche plein-texte** : elle range l'index
+dans **PostgreSQL**, la base sur laquelle votre Nextcloud tourne déjà.
+
+- **Aucun service supplémentaire** à installer, surveiller ou sauvegarder, et pas de JVM.
+- **Indexation qui connaît la langue**, avec une variante qui replie les accents : « numerisation »
+  trouve « numérisation ». Suit la langue de l'instance ; plusieurs peuvent être combinées.
+- **Contenu des PDF et des documents bureautiques extrait par l'application** — sans service
+  d'extraction externe.
+- **Droits d'accès honorés en SQL** : propriétaire, utilisateurs, groupes et cercles.
+
+Nécessite l'application **Recherche plein-texte** et un fournisseur de contenu tel que **Recherche plein-texte - Fichiers**, ainsi que PostgreSQL. Les extensions `unaccent` et `pg_trgm` sont vivement recommandées ; sans
+elles l'application fonctionne, avec une qualité et une rapidité moindres.
+]]>
+	</description>
+	<version>0.1.0</version>
+	<licence>AGPL-3.0-or-later</licence>
+	<author>Alain Lesage</author>
+	<namespace>FullTextSearch_PostgreSQL</namespace>
+	<category>search</category>
+	<bugs>https://github.com/Alain-L/fulltextsearch_postgresql/issues</bugs>
+	<repository type="git">https://github.com/Alain-L/fulltextsearch_postgresql.git</repository>
+
+	<dependencies>
+		<database min-version="13">pgsql</database>
+		<nextcloud min-version="32" max-version="34"/>
+	</dependencies>
+
+	<settings>
+		<admin>OCA\FullTextSearch_PostgreSQL\Settings\Admin</admin>
+	</settings>
+
+	<fulltextsearch>
+		<platform>OCA\FullTextSearch_PostgreSQL\Platform\PostgresPlatform</platform>
+	</fulltextsearch>
+</info>

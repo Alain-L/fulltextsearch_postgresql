@@ -1,0 +1,95 @@
+/**
+ * SPDX-FileCopyrightText: 2026 Alain Lesage
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ *
+ * You pick one language, sometimes two, never thirty: the selected languages are therefore
+ * removable chips, and the dropdown only serves to add one. Everything rides on Nextcloud's
+ * theme variables, so dark mode and the chosen accent color are followed.
+ */
+
+#fulltextsearch_postgresql .ftspg-manual {
+	margin-block: 12px 4px;
+	padding-inline-start: 28px; /* aligned under the checkbox label */
+	transition: opacity 150ms ease;
+}
+
+#fulltextsearch_postgresql .ftspg-manual[aria-disabled='true'] {
+	opacity: .4;
+	pointer-events: none;
+}
+
+#fulltextsearch_postgresql .ftspg-label {
+	display: block;
+	margin-block-end: 6px;
+	font-weight: bold;
+}
+
+#fulltextsearch_postgresql .ftspg-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 0 0 8px;
+	padding: 0;
+	list-style: none;
+	min-height: 34px;
+}
+
+#fulltextsearch_postgresql .ftspg-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	padding-inline: 12px 4px;
+	border-radius: var(--border-radius-pill, 16px);
+	background-color: var(--color-primary-element-light, #d3e2f3);
+	color: var(--color-primary-element-light-text, #05132c);
+	line-height: 30px;
+}
+
+/* The first language carries the ranking weight: it is flagged as the primary one. */
+#fulltextsearch_postgresql .ftspg-chip:first-child {
+	font-weight: bold;
+}
+
+#fulltextsearch_postgresql .ftspg-chip-remove {
+	all: unset;
+	display: grid;
+	place-items: center;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	cursor: pointer;
+	font-size: 18px;
+	line-height: 1;
+	opacity: .7;
+}
+
+#fulltextsearch_postgresql .ftspg-chip-remove:hover,
+#fulltextsearch_postgresql .ftspg-chip-remove:focus-visible {
+	background-color: var(--color-primary-element-light-hover, #c2d6ed);
+	opacity: 1;
+}
+
+#fulltextsearch_postgresql .ftspg-chip-remove:focus-visible {
+	outline: 2px solid var(--color-primary-element, #0082c9);
+	outline-offset: 1px;
+}
+
+#fulltextsearch_postgresql #ftspg-add {
+	width: 15em;
+}
+
+#fulltextsearch_postgresql .ftspg-cost {
+	margin-block-start: 8px;
+	max-width: 44em;
+}
+
+#fulltextsearch_postgresql .ftspg-feedback {
+	margin-inline-start: 12px;
+	color: var(--color-text-maxcontrast, #6b6b6b);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#fulltextsearch_postgresql .ftspg-manual {
+		transition: none;
+	}
+}

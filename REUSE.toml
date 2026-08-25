@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Alain Lesage
+# SPDX-License-Identifier: AGPL-3.0-or-later
+version = 1
+SPDX-PackageName = "fulltextsearch_postgresql"
+SPDX-PackageSupplier = "Alain Lesage"
+SPDX-PackageDownloadLocation = "https://github.com/Alain-L/fulltextsearch_postgresql"
+
+# The bundled library keeps its own license: it is not modified, and its license
+# text ships in vendor/smalot/pdfparser/LICENSE.txt.
+[[annotations]]
+path = "vendor/smalot/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Sébastien MALOT <sebastien@malot.fr>"
+SPDX-License-Identifier = "LGPL-3.0-only"
+
+[[annotations]]
+path = ["vendor/autoload.php", "vendor/composer/**"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Nils Adermann, Jordi Boggiano"
+SPDX-License-Identifier = "MIT"
+
+# Project files where a header is impossible or pointless.
+[[annotations]]
+path = ["composer.json", "composer.lock", ".gitignore", ".gitattributes"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Alain Lesage"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+[[annotations]]
+path = ["l10n/**.js", "l10n/**.json"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Alain Lesage"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+[[annotations]]
+path = ["README.md", "CHANGELOG.md", ".github/CONTRIBUTING.md", ".github/CODE_OF_CONDUCT.md", "AGENTS.md", "CLAUDE.md"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Alain Lesage"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
