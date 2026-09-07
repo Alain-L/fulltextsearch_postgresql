@@ -43,9 +43,14 @@ elles l'application fonctionne, avec une qualité et une rapidité moindres.
 	<licence>AGPL-3.0-or-later</licence>
 	<author>Alain Lesage</author>
 	<namespace>FullTextSearch_PostgreSQL</namespace>
+	<documentation>
+		<admin>https://github.com/Alain-L/fulltextsearch_postgresql#installation</admin>
+	</documentation>
 	<category>search</category>
+	<website>https://github.com/Alain-L/fulltextsearch_postgresql</website>
 	<bugs>https://github.com/Alain-L/fulltextsearch_postgresql/issues</bugs>
 	<repository type="git">https://github.com/Alain-L/fulltextsearch_postgresql.git</repository>
+	<screenshot>https://raw.githubusercontent.com/Alain-L/fulltextsearch_postgresql/main/screenshots/admin-settings.png</screenshot>
 
 	<dependencies>
 		<database min-version="13">pgsql</database>

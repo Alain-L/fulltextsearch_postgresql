@@ -3,6 +3,7 @@
 # have no business in an app installed on a server.
 /tests           export-ignore
 /.validate       export-ignore
+/screenshots     export-ignore
 /.github         export-ignore
 /.gitattributes  export-ignore
 /.gitignore      export-ignore
