@@ -15,6 +15,9 @@ build/
 # Cached validation schema
 .info.xsd
 
+# Working notes: unengaged leads, nothing to publish.
+ROADMAP.md
+
 # Internal working instructions: they describe a method, not the product
 AGENTS.md
 CLAUDE.md
