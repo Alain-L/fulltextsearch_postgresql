@@ -75,8 +75,8 @@ script or a cron job.
 
 ## Configuration
 
-One setting: the indexing language, under Administration → Full text search. The panel lists
-the text search configurations installed on your server.
+The indexing language is the only setting, and lives under Administration → Full text
+search. The panel lists the text search configurations installed on your server.
 
 ![The settings panel, under Administration → Full text search](https://raw.githubusercontent.com/Alain-L/fulltextsearch_postgresql/main/screenshots/admin-settings.png)
 
