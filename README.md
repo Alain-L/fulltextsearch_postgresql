@@ -46,9 +46,12 @@ sudo -u postgres psql -d <your_nextcloud_database> \
     -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm'
 ```
 
-`unaccent` lets a search without accents match accented content. `pg_trgm` lets partial
-matching on names use an index instead of scanning the table. Both are optional, and
-`occ fulltextsearch:check` reports either one as missing.
+- `unaccent` lets a search without accents match accented content,
+- `pg_trgm` lets partial matching on names use an index instead of scanning the
+table. 
+
+Both are optional but recommanded, `occ fulltextsearch:check` reports either one
+as missing.
 
 ### The app
 
@@ -64,13 +67,13 @@ sudo -u www-data php occ config:app:set fulltextsearch search_platform \
 sudo -u www-data php occ fulltextsearch:index
 ```
 
-Dependencies are bundled, so there is no `composer install` step. The platform can equally be
-selected from Administration → *Full text search* if you prefer the interface. Adjust the paths
-and the `www-data` user to your installation; in a container, `docker exec -u www-data …`
+Dependencies are bundled, so there is no `composer install` step, and the platform can be
+selected from **Administration → Full text search** instead of the second command. Adjust the
+paths and the `www-data` user to your installation; in a container, `docker exec -u www-data …`
 replaces `sudo -u www-data`.
 
-`fulltextsearch:index` draws a full-screen progress display; add `--output json -r` when
-running it from a script or a cron job.
+`fulltextsearch:index` draws a full-screen progress display; add `--output json -r` for a
+script or a cron job.
 
 ### Check that it works
 
@@ -89,6 +92,8 @@ One setting: the indexing language. There is no cluster to reach, no index to na
 certificate to accept — the database is Nextcloud's own. It lives under **Administration →
 Full text search**, where the panel offers the configurations actually installed on your
 server.
+
+![The settings panel, under Administration → Full text search](https://raw.githubusercontent.com/Alain-L/fulltextsearch_postgresql/main/screenshots/admin-settings.png)
 
 | Setting           | Default | Effect                                                              |
 | ----------------- | ------- | ------------------------------------------------------------------- |
