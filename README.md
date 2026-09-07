@@ -24,14 +24,13 @@ person running it can access.
 
 ### Prerequisites
 
-- **Nextcloud 32 to 34**, on **PostgreSQL 13 or later**. Both ends of that range are
-  exercised, as is PostgreSQL 13.
+- **Nextcloud 32 to 34**, on **PostgreSQL 15 or later**. Both ends of that range are
+  exercised, as is PostgreSQL 15.
 - The [Full text search](https://apps.nextcloud.com/apps/fulltextsearch) app and a content
   provider — normally
   [Full text search - Files](https://apps.nextcloud.com/apps/files_fulltextsearch). Install
   those first.
-- Optional: `pdftotext` (package `poppler-utils`) makes PDF extraction faster. Without it, a
-  bundled library does the same work.
+- Optional: `pdftotext` (package `poppler-utils`) to speed up PDF extraction faster.
 
 ### PostgreSQL extensions, before the first indexing run
 
@@ -47,9 +46,10 @@ sudo -u postgres psql -d <your_nextcloud_database> \
     -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm'
 ```
 
-The app runs without them, and `occ fulltextsearch:check` reports what is missing: without
-`unaccent`, searching without accents no longer matches accented content; without `pg_trgm`,
-partial matching on names still works but scans the whole table.
+- `unaccent` — searching without accents matches accented content.
+- `pg_trgm` — partial matching on names uses an index instead of scanning the table.
+
+Both are optional; `occ fulltextsearch:check` reports either as missing.
 
 ### The app
 
@@ -91,9 +91,9 @@ certificate to accept — the database is Nextcloud's own. It lives under **Admi
 Full text search**, where the panel offers the configurations actually installed on your
 server.
 
-| Setting | Default | Effect |
-|---|---|---|
-| `search_language` | `auto` | The PostgreSQL text search configuration(s) used to index and query |
+| Setting           | Default | Effect                                                              |
+| ----------------- | ------- | ------------------------------------------------------------------- |
+| `search_language` | `auto`  | The PostgreSQL text search configuration(s) used to index and query |
 
 `auto` follows the Nextcloud instance language; a language with no PostgreSQL equivalent falls
 back to English. Several can be combined for a mixed corpus, at roughly 20% of index size
