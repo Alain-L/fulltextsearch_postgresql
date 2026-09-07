@@ -46,10 +46,9 @@ sudo -u postgres psql -d <your_nextcloud_database> \
     -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm'
 ```
 
-- `unaccent` — searching without accents matches accented content.
-- `pg_trgm` — partial matching on names uses an index instead of scanning the table.
-
-Both are optional; `occ fulltextsearch:check` reports either as missing.
+`unaccent` lets a search without accents match accented content. `pg_trgm` lets partial
+matching on names use an index instead of scanning the table. Both are optional, and
+`occ fulltextsearch:check` reports either one as missing.
 
 ### The app
 
