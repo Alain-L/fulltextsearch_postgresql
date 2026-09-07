@@ -67,7 +67,7 @@ sudo -u www-data php occ config:app:set fulltextsearch search_platform \
 sudo -u www-data php occ fulltextsearch:index
 ```
 
-In a container, `docker exec -u www-data …` replaces `sudo -u www-data`.
+In a container, replace `sudo -u www-data` with `docker exec -u www-data …` 
 
 `fulltextsearch:index` draws a full-screen progress display; add `--output json -r` for a
 script or a cron job.
