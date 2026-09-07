@@ -82,13 +82,11 @@ search. The panel lists the text search configurations installed on your server.
 
 `search_language` defaults to `auto`, which follows the Nextcloud instance language; a
 language PostgreSQL does not know falls back to English. Several can be combined for a mixed
-corpus, at roughly 20% of index size each — useful when English documentation sits next to
-French correspondence, since a French stemmer will not reduce *searching* to *search*. The app
-warns beyond three.
+corpus, at roughly 20% of index size each.
 
-Changing the language rebuilds the index: the `tsvector` column is generated and cannot be
-altered in place. The table is recreated automatically, but Nextcloud still believes the
-documents are indexed, hence the reset:
+Changing the language re-indexes everything from scratch. The `tsvector` column is generated,
+so it cannot be altered in place: the table is dropped and every document is extracted again.
+Nextcloud still believes they are indexed, hence the reset:
 
 ```sh
 sudo -u www-data php occ config:app:set fulltextsearch_postgresql search_language \
