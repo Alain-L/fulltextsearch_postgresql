@@ -48,7 +48,7 @@ sudo -u postgres psql -d <your_nextcloud_database> \
 
 - `unaccent` lets a search without accents match accented content,
 - `pg_trgm` lets partial matching on names use an index instead of scanning the
-table. 
+table.
 
 Both are optional but recommanded, `occ fulltextsearch:check` reports either one
 as missing.
@@ -67,8 +67,7 @@ sudo -u www-data php occ config:app:set fulltextsearch search_platform \
 sudo -u www-data php occ fulltextsearch:index
 ```
 
-In a container, replace `sudo -u www-data` with `docker exec -u www-data …` 
-
+In a container, replace `sudo -u www-data` with `docker exec -u www-data …`.
 `fulltextsearch:index` draws a full-screen progress display; add `--output json -r` for a
 script or a cron job.
 
