@@ -74,13 +74,12 @@ script or a cron job.
 ### Check it's working
 
 ```sh
-sudo -u www-data php occ fulltextsearch:check              # platform, extensions, warnings
-sudo -u www-data php occ fulltextsearch:search admin word  # a term you know is in a file
-sudo -u www-data php occ fulltextsearch:test               # the framework's conformance test
+sudo -u www-data php occ fulltextsearch:check                   # platform and extensions
+sudo -u www-data php occ fulltextsearch:search <user> <term>    # a term you know is indexed
+sudo -u www-data php occ fulltextsearch:test                    # the framework's own test suite
 ```
 
-`fulltextsearch:test` exercises the platform end to end — keywords, exclusions, mandatory
-terms, group and share permissions — and exits non-zero on the first failure.
+The last one exits non-zero on the first failure, so it fits in a deployment script.
 
 ## Configuration
 
