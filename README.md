@@ -102,23 +102,15 @@ it with `&&`.
 
 ## How it works
 
-```
-Nextcloud
-  ├─ Content Provider (files_fulltextsearch)  ── reads the files
-  │        │  IndexDocument { content, metadata, access rights }
-  │        ▼
-  └─ Platform App  ◄── THIS REPOSITORY ──►  PostgreSQL
-                                       one table, a generated tsvector, GIN indexes
-```
-
-Extraction happens in the content provider, storage and querying here. A PDF that yields no
-text is a provider matter; a search that returns the wrong thing is ours.
+The `fulltextsearch` framework splits the work in two: a *content provider* reads files and
+extracts their text, a platform app — this one — stores it and answers queries. So a PDF that
+yields no text is a provider matter; a search that returns the wrong thing is ours.
 
 Further reading: [PostgreSQL full text search](https://www.postgresql.org/docs/current/textsearch.html)
 and [controlling it](https://www.postgresql.org/docs/current/textsearch-controls.html) for
 `tsvector`, `tsquery`, `ts_rank` and `ts_headline`; the
-[fulltextsearch wiki](https://github.com/nextcloud/fulltextsearch/wiki) for how Nextcloud
-splits providers from platforms.
+[fulltextsearch wiki](https://github.com/nextcloud/fulltextsearch/wiki) for the framework
+itself.
 
 ## How queries are interpreted
 
