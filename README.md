@@ -18,7 +18,7 @@ Features:
   and partial matching on file names.
 
 Permissions are indexed with the content, so a search only ever matches what the
-person running it can already see — administrators included.
+person running it can access.
 
 ## Installation
 
