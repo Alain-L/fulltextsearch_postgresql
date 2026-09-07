@@ -75,37 +75,30 @@ script or a cron job.
 
 ## Configuration
 
-One setting: the indexing language. There is no cluster to reach, no index to name, no
-certificate to accept — the database is Nextcloud's own. It lives under **Administration →
-Full text search**, where the panel offers the configurations actually installed on your
-server.
+One setting: the indexing language, under Administration → Full text search. The panel lists
+the text search configurations installed on your server.
 
 ![The settings panel, under Administration → Full text search](https://raw.githubusercontent.com/Alain-L/fulltextsearch_postgresql/main/screenshots/admin-settings.png)
 
-| Setting           | Default | Effect                                                              |
-| ----------------- | ------- | ------------------------------------------------------------------- |
-| `search_language` | `auto`  | The PostgreSQL text search configuration(s) used to index and query |
+`search_language` defaults to `auto`, which follows the Nextcloud instance language; a
+language PostgreSQL does not know falls back to English. Several can be combined for a mixed
+corpus, at roughly 20% of index size each — useful when English documentation sits next to
+French correspondence, since a French stemmer will not reduce *searching* to *search*. The app
+warns beyond three.
 
-`auto` follows the Nextcloud instance language; a language with no PostgreSQL equivalent falls
-back to English. Several can be combined for a mixed corpus, at roughly 20% of index size
-each — worth it when English documentation sits next to French correspondence, since a French
-stemmer will not reduce *searching* to *search*. Beyond three the app warns without forbidding
-anything.
-
-Changing the language **rebuilds the index**, because the `tsvector` column is generated and
-cannot be altered in place. The table is recreated automatically, but Nextcloud still believes
-the documents are indexed — hence the reset:
+Changing the language rebuilds the index: the `tsvector` column is generated and cannot be
+altered in place. The table is recreated automatically, but Nextcloud still believes the
+documents are indexed, hence the reset:
 
 ```sh
 sudo -u www-data php occ config:app:set fulltextsearch_postgresql search_language \
     --value french,english
-sudo -u www-data php occ fulltextsearch:reset   # asks 'y', then literally: reset ALL ALL
+sudo -u www-data php occ fulltextsearch:reset
 sudo -u www-data php occ fulltextsearch:index
 ```
 
-`fulltextsearch:reset` asks for confirmation twice — `y`, then the exact phrase
-`reset ALL ALL`. Anything else aborts silently, which is easy to miss when the command is
-chained with `&&`.
+`fulltextsearch:reset` asks twice: `y`, then the exact phrase `reset ALL ALL`. Anything else
+aborts silently.
 
 ## How it works
 
