@@ -26,25 +26,23 @@ Requires the [Full text search](https://apps.nextcloud.com/apps/fulltextsearch) 
 content provider — normally [Full text search - Files](https://apps.nextcloud.com/apps/files_fulltextsearch).
 Install those first.
 
-### 1. The PostgreSQL extensions, before anything else
+### 1. PostgreSQL extensions, before the first indexing run
 
-**Do this before the first indexing run.** The `tsvector` column is generated when the table is
-created: installing the extensions afterwards changes nothing until the index is rebuilt, and
-`occ fulltextsearch:check` will cheerfully report `"unaccent": true` while accent-insensitive
-search stays broken.
+The `tsvector` column is generated when the table is created, so installing these later has
+no effect until the index is rebuilt.
 
-Both are *trusted* extensions, but `CREATE EXTENSION` still needs the `CREATE` privilege on the
-database, which Nextcloud's application role does not have. A superuser runs them once, **on
-the Nextcloud database itself** — not on `postgres`:
+Nextcloud's database role cannot create them itself: `CREATE EXTENSION` needs the `CREATE`
+privilege on the database. A superuser runs them once, on the Nextcloud database:
 
 ```sh
-sudo -u postgres psql -d nextcloud -c 'CREATE EXTENSION IF NOT EXISTS unaccent'
-sudo -u postgres psql -d nextcloud -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm'
+sudo -u postgres psql -d <your_nextcloud_database> \
+    -c 'CREATE EXTENSION IF NOT EXISTS unaccent' \
+    -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm'
 ```
 
-The app runs without them and says so — `occ fulltextsearch:check` lists what is missing and
-what it costs. Without `unaccent`, searching without accents stops matching accented content
-altogether; without `pg_trgm`, partial matching on names still works but scans the whole table.
+The app runs without them, and `occ fulltextsearch:check` reports what is missing: without
+`unaccent`, searching without accents no longer matches accented content; without `pg_trgm`,
+partial matching on names still works but scans the whole table.
 
 ### 2. The app
 
