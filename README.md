@@ -64,22 +64,14 @@ chown -R www-data:www-data custom_apps/fulltextsearch_postgresql
 sudo -u www-data php occ app:enable fulltextsearch_postgresql
 sudo -u www-data php occ config:app:set fulltextsearch search_platform \
     --value 'OCA\FullTextSearch_PostgreSQL\Platform\PostgresPlatform'
+sudo -u www-data php occ fulltextsearch:check                 # platform and extensions
 sudo -u www-data php occ fulltextsearch:index
+sudo -u www-data php occ fulltextsearch:search <user> <term>  # a term you know is indexed
 ```
 
 In a container, replace `sudo -u www-data` with `docker exec -u www-data …`.
 `fulltextsearch:index` draws a full-screen progress display; add `--output json -r` for a
 script or a cron job.
-
-### Check it's working
-
-```sh
-sudo -u www-data php occ fulltextsearch:check                   # platform and extensions
-sudo -u www-data php occ fulltextsearch:search <user> <term>    # a term you know is indexed
-sudo -u www-data php occ fulltextsearch:test                    # the framework's own test suite
-```
-
-The last one exits non-zero on the first failure, so it fits in a deployment script.
 
 ## Configuration
 
