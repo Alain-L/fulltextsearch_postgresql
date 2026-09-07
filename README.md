@@ -22,11 +22,18 @@ person running it can access.
 
 ## Installation
 
-Requires the [Full text search](https://apps.nextcloud.com/apps/fulltextsearch) app and a
-content provider — normally [Full text search - Files](https://apps.nextcloud.com/apps/files_fulltextsearch).
-Install those first.
+### Prerequisites
 
-### 1. PostgreSQL extensions, before the first indexing run
+- **Nextcloud 32 to 34**, on **PostgreSQL 13 or later**. Both ends of that range are
+  exercised, as is PostgreSQL 13.
+- The [Full text search](https://apps.nextcloud.com/apps/fulltextsearch) app and a content
+  provider — normally
+  [Full text search - Files](https://apps.nextcloud.com/apps/files_fulltextsearch). Install
+  those first.
+- Optional: `pdftotext` (package `poppler-utils`) makes PDF extraction faster. Without it, a
+  bundled library does the same work.
+
+### PostgreSQL extensions, before the first indexing run
 
 The `tsvector` column is generated when the table is created, so installing these later has
 no effect until the index is rebuilt.
@@ -44,7 +51,7 @@ The app runs without them, and `occ fulltextsearch:check` reports what is missin
 `unaccent`, searching without accents no longer matches accented content; without `pg_trgm`,
 partial matching on names still works but scans the whole table.
 
-### 2. The app
+### The app
 
 ```sh
 cd /var/www/nextcloud
@@ -66,7 +73,7 @@ replaces `sudo -u www-data`.
 `fulltextsearch:index` draws a full-screen progress display; add `--output json -r` when
 running it from a script or a cron job.
 
-### 3. Check that it works
+### Check that it works
 
 ```sh
 sudo -u www-data php occ fulltextsearch:check              # platform, extensions, warnings
@@ -76,12 +83,6 @@ sudo -u www-data php occ fulltextsearch:test               # the framework's con
 
 `fulltextsearch:test` exercises the platform end to end — keywords, exclusions, mandatory
 terms, group and share permissions — and exits non-zero on the first failure.
-
-**Requirements**: Nextcloud 32 to 34, on PostgreSQL 13 or later. Both ends of that
-range are exercised, as is PostgreSQL 13.
-
-`pdftotext` (package `poppler-utils`) is used for PDFs when present, because it is faster.
-Otherwise the bundled library handles them — nothing to install.
 
 ## Configuration
 
