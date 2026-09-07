@@ -71,7 +71,7 @@ In a container, replace `sudo -u www-data` with `docker exec -u www-data …`.
 `fulltextsearch:index` draws a full-screen progress display; add `--output json -r` for a
 script or a cron job.
 
-### Check that it works
+### Check it's working
 
 ```sh
 sudo -u www-data php occ fulltextsearch:check              # platform, extensions, warnings
