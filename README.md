@@ -67,10 +67,7 @@ sudo -u www-data php occ config:app:set fulltextsearch search_platform \
 sudo -u www-data php occ fulltextsearch:index
 ```
 
-Dependencies are bundled, so there is no `composer install` step, and the platform can be
-selected from **Administration → Full text search** instead of the second command. Adjust the
-paths and the `www-data` user to your installation; in a container, `docker exec -u www-data …`
-replaces `sudo -u www-data`.
+In a container, `docker exec -u www-data …` replaces `sudo -u www-data`.
 
 `fulltextsearch:index` draws a full-screen progress display; add `--output json -r` for a
 script or a cron job.
