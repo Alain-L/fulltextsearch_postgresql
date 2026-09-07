@@ -80,13 +80,14 @@ search. The panel lists the text search configurations installed on your server.
 
 ![The settings panel, under Administration → Full text search](https://raw.githubusercontent.com/Alain-L/fulltextsearch_postgresql/main/screenshots/admin-settings.png)
 
-`search_language` defaults to `auto`, which follows the Nextcloud instance language; a
-language PostgreSQL does not know falls back to English. Several can be combined for a mixed
-corpus, at roughly 20% of index size each.
+`search_language` defaults to `auto`, which follows the Nextcloud instance
+language; a language PostgreSQL does not know falls back to English. Several can
+be combined for a mixed corpus, at roughly 20% of index size each.
 
-Changing the language re-indexes everything from scratch. The `tsvector` column is generated,
-so it cannot be altered in place: the table is dropped and every document is extracted again.
-Nextcloud still believes they are indexed, hence the reset:
+Changing the language re-indexes everything from scratch. The `tsvector` column
+is generated, so it cannot be altered in place: the table is dropped and every
+document is extracted again. Nextcloud still believes they are indexed, hence
+the reset:
 
 ```sh
 sudo -u www-data php occ config:app:set fulltextsearch_postgresql search_language \
@@ -95,8 +96,9 @@ sudo -u www-data php occ fulltextsearch:reset
 sudo -u www-data php occ fulltextsearch:index
 ```
 
-`fulltextsearch:reset` asks twice: `y`, then the exact phrase `reset ALL ALL`. Anything else
-aborts silently.
+The settings panel says as much when you save a change. `fulltextsearch:reset` asks twice:
+`y`, then the exact phrase `reset ALL ALL` — anything else aborts silently, so avoid chaining
+it with `&&`.
 
 ## How it works
 
