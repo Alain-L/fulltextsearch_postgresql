@@ -111,13 +111,14 @@ Nextcloud
                                        one table, a generated tsvector, GIN indexes
 ```
 
-Content arrives encoded, sometimes as text, sometimes as raw binary (PDF, Office): the app
-decodes it, extracts the text, then indexes it into a generated, weighted `tsvector` column —
-title, content, attached parts. Queries are translated with `websearch_to_tsquery`, ranked with
-`ts_rank` and highlighted with `ts_headline`. Access rights become a SQL clause over indexed
-`text[]` columns.
+Extraction happens in the content provider, storage and querying here. A PDF that yields no
+text is a provider matter; a search that returns the wrong thing is ours.
 
-Twelve files, roughly 1,950 lines, and all the SQL in one of them.
+Further reading: [PostgreSQL full text search](https://www.postgresql.org/docs/current/textsearch.html)
+and [controlling it](https://www.postgresql.org/docs/current/textsearch-controls.html) for
+`tsvector`, `tsquery`, `ts_rank` and `ts_headline`; the
+[fulltextsearch wiki](https://github.com/nextcloud/fulltextsearch/wiki) for how Nextcloud
+splits providers from platforms.
 
 ## How queries are interpreted
 
