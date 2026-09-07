@@ -102,9 +102,10 @@ it with `&&`.
 
 ## How it works
 
-The `fulltextsearch` framework splits the work in two: a *content provider* reads files and
-extracts their text, a platform app — this one — stores it and answers queries. So a PDF that
-yields no text is a provider matter; a search that returns the wrong thing is ours.
+The `fulltextsearch` framework splits the work in two: a *content provider*
+reads files and extracts their text, a platform app as this project stores it
+and answers queries. So a PDF that yields no text is a provider matter; a search
+that returns the wrong thing is ours.
 
 Further reading: [PostgreSQL full text search](https://www.postgresql.org/docs/current/textsearch.html)
 and [controlling it](https://www.postgresql.org/docs/current/textsearch-controls.html) for
@@ -114,41 +115,33 @@ itself.
 
 ## How queries are interpreted
 
-Worth knowing, because it is not what every engine does:
+| You type         | What happens                                                        |
+| ---------------- | ------------------------------------------------------------------- |
+| `two words`      | matched with OR; documents carrying every term rank first           |
+| `"exact phrase"` | quotes are binding — the words must be adjacent                     |
+| `-word`          | excludes documents carrying it                                      |
+| `+word`          | makes it mandatory, whatever the OR would otherwise let through     |
+| `wor`            | matches by prefix from four characters — `chauff` finds `chauffage` |
 
-| You type | What happens |
-|---|---|
-| `two words` | matched with **OR**; documents carrying every term rank first |
-| `"exact phrase"` | quotes are binding — the words must be adjacent |
-| `-word` | excludes documents carrying it |
-| `+word` | makes it mandatory, whatever the OR would otherwise let through |
-| `wor` | matches by prefix from four characters — `chauff` finds `chauffage` |
-
-Searching for several words is deliberately generous: a query returns more than a strict AND
-would, and the ranking sorts it out. `occ fulltextsearch:test` covers all of the above.
+`occ fulltextsearch:test` covers all of the above.
 
 ## Known limitations
 
-- **Writing systems without spaces are not segmented.** PostgreSQL splits text on separators,
-  so Chinese or Japanese content becomes a single lexeme and stays unfindable. No setting
-  changes this — it is a property of the text search parser. If your corpus is CJK, this app
-  is not for you.
+- **Writing systems without spaces are not segmented**, so Chinese or Japanese content stays
+  unfindable. No setting changes this — if your corpus is CJK, this app is not for you.
+- **Scanned PDFs are not read**, though scanned images are: the upstream OCR app hands over
+  text for `jpg` and `png`, but its PDF path is broken and it declares support only up to
+  Nextcloud 32.
+- **The indexed content is held twice**, once as text so excerpts can be built and once in the
+  generated `tsvector` — and once more per extra language, at roughly 20% each.
 - **Advanced search filters** (comparison queries, additional fields) are not implemented: the
   Files content provider never issues them.
-- **Scanned PDFs are not read**, though scanned images are. OCR happens upstream, in
-  `files_fulltextsearch_tesseract`: it hands over recognised text for `jpg` and `png`, which
-  is indexed normally, but its PDF path calls an API that has disappeared from its own
-  dependency and yields nothing. That app also declares support only up to Nextcloud 32.
-  Nothing here can work around either.
-- Tested up to **50,000 documents**; beyond that, uncharted.
-- A `tsvector` keeps only **16,383 positions**: past that, phrase search stops working
-  towards the end of very long documents.
-- A **compound word is out of reach of an exact phrase**: “comptes-rendus” tokenizes into two
+- **No facets and no configurable sorting**: the framework API does not expose them.
+- **A `tsvector` keeps only 16,383 positions**: past that, phrase search stops working towards
+  the end of very long documents.
+- **A compound word is out of reach of an exact phrase**: "comptes-rendus" tokenizes into two
   lexemes that `"compte rendu"` cannot span. Search it without quotes.
-- No facets and no configurable sorting: the framework API does not expose them.
-- **The indexed content is held twice**: once as text, so excerpts can be built, and once in
-  the generated `tsvector`. Expect the index to weigh more than the extracted text alone —
-  and more still with several languages configured, at roughly 20% each.
+- **Tested up to 50,000 documents**; beyond that, uncharted.
 
 ## Contributing
 
@@ -158,14 +151,11 @@ strings. Bug reports, translations and patches are all welcome — see
 
 ## Licence
 
-This app is distributed under **AGPL-3.0-or-later** (see [`LICENSE`](LICENSE)). Everything
-outside `vendor/` is this project's own code and documentation, under that licence.
+This app is **AGPL-3.0-or-later** (see [`LICENSE`](LICENSE)); everything outside `vendor/` is
+its own code and documentation.
 
-`vendor/` bundles **[smalot/pdfparser](https://github.com/smalot/pdfparser)** by Sébastien
-MALOT, under the GNU Lesser General Public License v3.0 (**LGPL-3.0-only**), used to extract
-the text layer from PDF documents. It is included **unmodified**, pinned in `composer.lock`,
-and ships with its own licence text in
-[`vendor/smalot/pdfparser/LICENSE.txt`](vendor/smalot/pdfparser/LICENSE.txt); anyone remains
-free to replace it with another version, as the LGPL-3.0 requires. The LGPL-3.0 permits
-bundling a library into a work covered by the AGPL-3.0, and this section is the use notice its
-section 4 asks for.
+`vendor/` bundles [smalot/pdfparser](https://github.com/smalot/pdfparser) by Sébastien MALOT
+under **LGPL-3.0-only**, unmodified and pinned in `composer.lock`, with its licence text in
+[`vendor/smalot/pdfparser/LICENSE.txt`](vendor/smalot/pdfparser/LICENSE.txt). Anyone remains
+free to replace it with another version, and this paragraph is the use notice the LGPL-3.0
+asks for in its section 4.
