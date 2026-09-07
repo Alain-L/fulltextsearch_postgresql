@@ -11,15 +11,14 @@ Features:
   configuration (stemming, stop words…) *and* with an accent-folding variant
   derived from it. The app follows your instance language by default and can
   combine several for a mixed corpus.
-- **PDF and Office content, extracted by the app.** No external extraction service to
-  install: PDFs and the usual office formats (`docx`, `xlsx`, `pptx`, `odt`, `ods`, `odp`)
-  are read out of the box.
-- **The usual search filters**: by source, by file extension, within a folder, and partial
-  matching on file names.
+- **PDF and Office content, extracted by the app.** No external extraction
+  service to install: PDFs and the usual office formats (`docx`, `xlsx`, `pptx`,
+  `odt`, `ods`, `odp`) are read out of the box.
+- **The usual search filters**: by source, by file extension, within a folder,
+  and partial matching on file names.
 
-Access rights are enforced **inside the SQL query**: owner, users, groups and circles are
-indexed alongside the content, so the database returns only what the person searching is
-allowed to see, rather than filtering after the fact.
+Permissions are indexed with the content, so a search only ever matches what the
+person running it can already see — administrators included.
 
 ## Installation
 
