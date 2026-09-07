@@ -1,29 +1,25 @@
 # fulltextsearch_postgresql
 
 **Full-text search for Nextcloud, powered by PostgreSQL.**
-Language-aware indexing, with PDF and Office extraction included.
 
-Nextcloud's `fulltextsearch` framework delegates storing and querying file content to a
-*platform app*. This is one, and it keeps the index in the database Nextcloud already runs.
+This is a Nextcloud `fulltextsearch` *platform app* that keeps the index in the
+PostgreSQL database Nextcloud already runs — no separate service to run.
 
-- **No extra service.** Nothing to install, monitor, secure or back up alongside Nextcloud,
-  and no JVM — your existing `pg_dump` already covers the search index. It also removes one
-  dimension from the compatibility matrix at every major Nextcloud release.
-- **Language-aware indexing.** Content is indexed with a real PostgreSQL text search
-  configuration — stemming, stop words, the lot — *and* with an accent-folding variant derived
-  from it, so `numerisation` finds “numérisation” without costing the stemming. The app
-  follows your instance language by default and can combine several for a mixed corpus.
-- **PDF and Office content, extracted by the app.** No external extraction service: PDFs
-  through `pdftotext` when poppler is available and a bundled library otherwise, and `docx`,
-  `xlsx`, `pptx`, `odt`, `ods`, `odp` by direct reading.
-- **Access rights enforced in SQL.** Owner, users, groups and circles become indexed `text[]`
-  conditions in the query itself — filtered by the database, not after the fact.
-- **The search filters the Files provider actually issues**: source, extension, “search
-  within”, and partial matching on file and share names.
+Features:
 
-This answers a request open since April 2018 —
-[“Postgres as Platform Apps?”](https://github.com/nextcloud/fulltextsearch/issues/302) —
-labelled *help wanted*.
+- **Language-aware indexing.** Content is indexed with PostgreSQL text search
+  configuration (stemming, stop words…) *and* with an accent-folding variant
+  derived from it. The app follows your instance language by default and can
+  combine several for a mixed corpus.
+- **PDF and Office content, extracted by the app.** No external extraction service to
+  install: PDFs and the usual office formats (`docx`, `xlsx`, `pptx`, `odt`, `ods`, `odp`)
+  are read out of the box.
+- **The usual search filters**: by source, by file extension, within a folder, and partial
+  matching on file names.
+
+Access rights are enforced **inside the SQL query**: owner, users, groups and circles are
+indexed alongside the content, so the database returns only what the person searching is
+allowed to see, rather than filtering after the fact.
 
 ## Installation
 
@@ -164,11 +160,11 @@ would, and the ranking sorts it out. `occ fulltextsearch:test` covers all of the
   is not for you.
 - **Advanced search filters** (comparison queries, additional fields) are not implemented: the
   Files content provider never issues them.
-- **OCR is no longer available upstream.** `files_fulltextsearch_tesseract` caps at Nextcloud
-  32 and is published on the App Store for neither 33 nor 34; its code also calls an API that
-  has disappeared from its own dependency, so PDF OCR had already stopped working. Scanned
-  documents are therefore out of reach until that app is revived — extraction of scanned pages
-  happens upstream, not here.
+- **Scanned PDFs are not read**, though scanned images are. OCR happens upstream, in
+  `files_fulltextsearch_tesseract`: it hands over recognised text for `jpg` and `png`, which
+  is indexed normally, but its PDF path calls an API that has disappeared from its own
+  dependency and yields nothing. That app also declares support only up to Nextcloud 32.
+  Nothing here can work around either.
 - Tested up to **50,000 documents**; beyond that, uncharted.
 - A `tsvector` keeps only **16,383 positions**: past that, phrase search stops working
   towards the end of very long documents.
