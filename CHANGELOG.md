@@ -5,8 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [0.1.0] — 2026-08-25
 
-First usable release. Tested on Nextcloud 33 / PostgreSQL 18 against a real corpus of
-varied formats.
+First usable release. Tested on Nextcloud 32, 33 and 34, against PostgreSQL 15 and 18.
 
 ### Added
 

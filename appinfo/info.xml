@@ -53,7 +53,7 @@ elles l'application fonctionne, avec une qualité et une rapidité moindres.
 	<screenshot>https://raw.githubusercontent.com/Alain-L/fulltextsearch_postgresql/main/screenshots/admin-settings.png</screenshot>
 
 	<dependencies>
-		<database min-version="13">pgsql</database>
+		<database min-version="15">pgsql</database>
 		<nextcloud min-version="32" max-version="34"/>
 	</dependencies>
 
