@@ -53,7 +53,7 @@ class FtsRequest {
 	 * place, and the table is a rebuildable cache — so a version mismatch drops and recreates
 	 * it, and the next `occ fulltextsearch:index` refills it.
 	 */
-	private const SCHEMA_VERSION = '5';
+	private const SCHEMA_VERSION = '6';
 
 	/**
 	 * Below this, a word triggers no partial match: the substring would be too common to bring
@@ -402,7 +402,7 @@ class FtsRequest {
 
 		$this->db->executeStatement(
 			'COMMENT ON TABLE ' . self::TABLE . " IS '" . self::SCHEMA_VERSION . ':'
-			. implode('+', $this->languages()) . "'"
+			. implode('+', $this->tsConfigs()) . "'"
 		);
 
 		foreach ([
@@ -440,6 +440,77 @@ class FtsRequest {
 	 * The schema version is kept as the table's comment: no extra table, and it travels with
 	 * the object it describes.
 	 */
+	/**
+	 * What the generated column is compiled against — the configurations, not the languages.
+	 * `unaccent` appearing after the table was built swaps `french` for `nc_fts_french` here,
+	 * and that is precisely the change that has to force a rebuild: signing with the languages
+	 * leaves the comment matching while the column goes on folding nothing.
+	 */
+	private function schemaSignature(): string {
+		return $this->signature($this->tsConfigs());
+	}
+
+	/**
+	 * The signature the settings call for, whether or not the derived configurations have been
+	 * created yet. `tsConfigs()` reports what exists, and the derived ones are only created by
+	 * `initSchema()` or by saving the language: between `CREATE EXTENSION unaccent` and the next
+	 * indexing run, it still answers `french` and the drift below would see nothing to report —
+	 * which is the one case it exists for.
+	 */
+	private function targetSignature(): string {
+		$unaccent = $this->hasUnaccent();
+
+		return $this->signature(array_map(
+			static fn (string $langue): string => $unaccent ? 'nc_fts_' . $langue : $langue,
+			$this->languages()
+		));
+	}
+
+	/**
+	 * Sorted, because the column ORs the configurations together: listing the same two languages
+	 * the other way round builds the very same index, and must not ask for a rebuild.
+	 *
+	 * @param string[] $configs
+	 */
+	private function signature(array $configs): string {
+		sort($configs);
+
+		return self::SCHEMA_VERSION . ':' . implode('+', $configs);
+	}
+
+	/**
+	 * The gap between the table as it stands and the table the current settings call for, or
+	 * null when there is none. Only `fulltextsearch:index` rebuilds; `fulltextsearch:check` has
+	 * to be able to say so without changing anything, or an administrator who installs an
+	 * extension and checks reads a clean report over a stale index.
+	 *
+	 * @return string|null
+	 */
+	public function schemaDrift(): ?string {
+		try {
+			$result = $this->db->executeQuery(
+				"SELECT to_regclass('" . self::TABLE . "') IS NOT NULL AS present,
+						obj_description(to_regclass('" . self::TABLE . "'), 'pg_class') AS version"
+			);
+			$row = $result->fetch();
+			$result->closeCursor();
+		} catch (Throwable) {
+			return null;
+		}
+
+		// No table yet is not a drift: indexing will build it against the current settings. A
+		// table with no comment is one, though — it predates versioning, and the next indexing
+		// run drops it. Both answer null to obj_description, hence the separate check.
+		if (!(bool)($row['present'] ?? false)) {
+			return null;
+		}
+
+		$found = $row['version'] ?? 'unversioned';
+		$cible = $this->targetSignature();
+
+		return $found === $cible ? null : $found . ' → ' . $cible;
+	}
+
 	private function dropOnSchemaChange(): void {
 		// The name goes through the SQL, not through a parameter: IDBConnection is the one that
 		// substitutes *PREFIX*, and it only touches the query. Both facts are read together: a
@@ -457,7 +528,7 @@ class FtsRequest {
 
 		$present = (bool)($row['present'] ?? false);
 		$found = $row['version'] ?? null;
-		$attendu = self::SCHEMA_VERSION . ':' . implode('+', $this->languages());
+		$attendu = $this->schemaSignature();
 
 		// Dropping the unaccent extension with CASCADE takes the derived configuration down,
 		// and the generated column that depends on it along with it. The table survives, minus
@@ -504,8 +575,8 @@ class FtsRequest {
 	 * database nor the CREATE privilege on it — so CREATE EXTENSION fails even though
 	 * `unaccent` is a trusted extension. Rather than refuse to start, the platform falls back
 	 * to plain `french`: stemming and stopwords still work, only accent folding is lost.
-	 * An administrator restores it with a single `CREATE EXTENSION unaccent;` as superuser,
-	 * followed by a re-index.
+	 * An administrator restores it with a single `CREATE EXTENSION unaccent;`, or by granting
+	 * CREATE on the database to the role Nextcloud connects with, followed by a re-index.
 	 */
 	private function ensureUnaccent(): bool {
 		if ($this->ensureExtension('unaccent')) {
@@ -515,17 +586,20 @@ class FtsRequest {
 		$this->logger->warning(
 			'fulltextsearch_postgresql: the unaccent extension is missing and cannot be created '
 			. '(the database user lacks CREATE on the database). Search will be '
-			. 'accent-sensitive. Ask an administrator to run "CREATE EXTENSION unaccent;" '
-			. 'as superuser, then re-index.'
+			. 'accent-sensitive. Ask an administrator for "GRANT CREATE ON DATABASE <db> TO '
+			. '<the role in dbuser>;", which lets this app create it on the next indexing run, '
+			. 'or to run "CREATE EXTENSION unaccent;" once. Then re-index.'
 		);
 
 		return false;
 	}
 
 	/**
-	 * The extensions the platform relies on are *trusted*, but that is not enough: CREATE
-	 * EXTENSION demands the CREATE privilege on the database, which Nextcloud's application role
-	 * does not have. We try, and a missing one degrades instead of failing.
+	 * The extensions the platform relies on are *trusted*, so CREATE EXTENSION asks for the
+	 * CREATE privilege on the database rather than superuser rights. Nextcloud does not
+	 * necessarily connect as a role holding it: its installer often makes a dedicated `oc_…`
+	 * role with CONNECT alone. We try, and a refusal degrades instead of failing: the
+	 * administrator is told what is missing and what to run.
 	 */
 	private function ensureExtension(string $name): bool {
 		if ($this->hasExtension($name)) {

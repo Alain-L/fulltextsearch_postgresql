@@ -83,6 +83,16 @@ class PostgresPlatform implements IFullTextSearchPlatform {
 					. 'Have a superuser run "CREATE EXTENSION pg_trgm;" on the Nextcloud '
 					. 'database; no re-indexing is needed.';
 			}
+			// The table is rebuilt by fulltextsearch:index, never by check — so between an
+			// extension appearing and the next indexing run, the column still ignores it while
+			// every field above reads clean. Say it here or nobody finds out.
+			$decalage = $this->request->schemaDrift();
+			if ($decalage !== null) {
+				$avertissements[] = 'the index table was built for a different configuration ('
+					. $decalage . '): searches still use the old one. Run '
+					. '"occ fulltextsearch:reset" then "occ fulltextsearch:index" to rebuild it.';
+			}
+
 			if ($avertissements !== []) {
 				$config['warnings'] = $avertissements;
 			}
