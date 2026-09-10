@@ -8,35 +8,39 @@
 	<id>fulltextsearch_postgresql</id>
 	<name>Full text search - PostgreSQL Platform</name>
 	<name lang="fr">Recherche plein-texte - Plateforme PostgreSQL</name>
-	<summary>Index and search with PostgreSQL — multilingual, no JVM</summary>
-	<summary lang="fr">Indexation et recherche avec PostgreSQL — multilingue, sans JVM</summary>
+	<summary>Index and search with the PostgreSQL database Nextcloud already runs on</summary>
+	<summary lang="fr">Indexation et recherche dans la base PostgreSQL sur laquelle Nextcloud tourne déjà</summary>
 	<description><![CDATA[
-A search platform for the **Full text search** app: it keeps the index in **PostgreSQL**, the
-database your Nextcloud already runs on.
+A search platform for the Full text search app: it keeps the index in PostgreSQL, the database
+your Nextcloud already runs on, so there is no separate service to install, monitor or back up.
 
-- **No extra service** to install, monitor or back up, and no JVM.
-- **Language-aware indexing**, with an accent-folding variant so "numerisation" finds
-  "numérisation". Follows your instance language; several can be combined.
-- **PDF and Office content extracted by the app** — no external extraction service.
-- **Access rights enforced in SQL**: owner, users, groups and circles.
+- Language-aware indexing, with an accent-folding variant so "numerisation" finds
+  "numérisation". It follows your instance language, and several can be combined.
+- PDF and office content extracted by the app itself — docx, xlsx, pptx, odt, ods, odp and
+  PDF — with no external extraction service.
+- Permissions are indexed with the content, so a search only ever matches what the person
+  running it can access.
 
-Requires the **Full text search** app and a content provider such as **Full text search - Files**, plus PostgreSQL. The `unaccent` and `pg_trgm` extensions are strongly recommended; without
-them the app still works, with reduced quality and speed.
+Requires the Full text search app and a content provider such as Full text search - Files. The
+unaccent and pg_trgm PostgreSQL extensions are strongly recommended; without them the app still
+works, with reduced quality and speed.
 ]]>
 	</description>
 	<description lang="fr"><![CDATA[
-Une plateforme de recherche pour l'application **Recherche plein-texte** : elle range l'index
-dans **PostgreSQL**, la base sur laquelle votre Nextcloud tourne déjà.
+Une plateforme de recherche pour l'application Recherche plein-texte : elle range l'index dans
+PostgreSQL, la base sur laquelle votre Nextcloud tourne déjà, sans service supplémentaire à
+installer, surveiller ou sauvegarder.
 
-- **Aucun service supplémentaire** à installer, surveiller ou sauvegarder, et pas de JVM.
-- **Indexation qui connaît la langue**, avec une variante qui replie les accents : « numerisation »
-  trouve « numérisation ». Suit la langue de l'instance ; plusieurs peuvent être combinées.
-- **Contenu des PDF et des documents bureautiques extrait par l'application** — sans service
-  d'extraction externe.
-- **Droits d'accès honorés en SQL** : propriétaire, utilisateurs, groupes et cercles.
+- Indexation qui connaît la langue, avec une variante qui replie les accents : « numerisation »
+  trouve « numérisation ». Elle suit la langue de l'instance, et plusieurs peuvent être combinées.
+- Contenu des PDF et des documents bureautiques extrait par l'application elle-même — docx, xlsx,
+  pptx, odt, ods, odp et PDF — sans service d'extraction externe.
+- Les droits sont indexés avec le contenu : une recherche ne trouve jamais que ce à quoi la
+  personne qui la lance a accès.
 
-Nécessite l'application **Recherche plein-texte** et un fournisseur de contenu tel que **Recherche plein-texte - Fichiers**, ainsi que PostgreSQL. Les extensions `unaccent` et `pg_trgm` sont vivement recommandées ; sans
-elles l'application fonctionne, avec une qualité et une rapidité moindres.
+Nécessite l'application Recherche plein-texte et un fournisseur de contenu tel que Recherche
+plein-texte - Fichiers. Les extensions PostgreSQL unaccent et pg_trgm sont vivement recommandées ;
+sans elles l'application fonctionne, avec une qualité et une rapidité moindres.
 ]]>
 	</description>
 	<version>0.1.0</version>
