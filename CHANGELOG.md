@@ -3,6 +3,23 @@
 This format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## 0.1.1 — 2026-09-10
+
+### Fixed
+
+- Installing `unaccent` after the first indexing run now rebuilds the index table, so searching
+  without accents starts working. It used to stay broken for good: the generated `tsvector`
+  column is fixed when the table is created, and neither `fulltextsearch:reset` nor a full
+  re-index redefined it.
+- `occ fulltextsearch:check` no longer reports a healthy index when the table was built for a
+  different configuration. It names the mismatch and the two commands that settle it.
+
+### Changed
+
+- The warning about a missing extension now suggests granting `CREATE` on the database to the
+  role Nextcloud connects with, which lets the app create both extensions on its next indexing
+  run, instead of asking a superuser to create each one.
+
 ## 0.1.0 — 2026-09-10
 
 First release. Tested on Nextcloud 32, 33 and 34, against PostgreSQL 15 and 18.
