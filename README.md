@@ -24,54 +24,68 @@ person running it can access.
 
 ### Prerequisites
 
-- **Nextcloud 32 to 34**, on **PostgreSQL 15 or later**. Both ends of that range are
-  exercised, as is PostgreSQL 15.
+- **Nextcloud 32 to 34**, on **PostgreSQL 15 or later**. Both ends of the Nextcloud range
+  are tested, as are PostgreSQL 15 and 18.
 - The [Full text search](https://apps.nextcloud.com/apps/fulltextsearch) app and a content
   provider — normally
   [Full text search - Files](https://apps.nextcloud.com/apps/files_fulltextsearch). Install
   those first.
-- Optional: `pdftotext` (package `poppler-utils`) to speed up PDF extraction faster.
+- Optional: `pdftotext` (package `poppler-utils`), which reads PDFs faster than the
+  bundled library.
 
 ### PostgreSQL extensions, before the first indexing run
 
-The `tsvector` column is generated when the table is created, so installing these later has
-no effect until the index is rebuilt.
+The app tries to create `unaccent` and `pg_trgm` on first run. Both are *trusted*, so a role
+holding `CREATE` on the database installs them without being a superuser — but Nextcloud does
+not necessarily run as such a role: its installer often creates a dedicated `oc_…` role that
+holds `CREATE` on the schema and not on the database, which is not enough.
 
-Nextcloud's database role cannot create them itself: `CREATE EXTENSION` needs the `CREATE`
-privilege on the database. A superuser runs them once, on the Nextcloud database:
+`occ fulltextsearch:check` names whichever is missing — it reports, it does not create; only
+an indexing run does. Either grant the privilege once and let the app do the rest, or create
+the two extensions yourself:
 
 ```sh
-sudo -u postgres psql -d <your_nextcloud_database> \
+# grant, using the role named by `occ config:system:get dbuser`
+psql -U <superuser> -d <your_nextcloud_database> \
+    -c 'GRANT CREATE ON DATABASE <your_nextcloud_database> TO <dbuser>'
+
+# or create them directly
+psql -U <superuser> -d <your_nextcloud_database> \
     -c 'CREATE EXTENSION IF NOT EXISTS unaccent' \
     -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm'
 ```
 
-- `unaccent` lets a search without accents match accented content,
-- `pg_trgm` lets partial matching on names use an index instead of scanning the
-table.
+The official `postgres` image creates no `postgres` role when `POSTGRES_USER` is set, so
+`<superuser>` there is that user, reached with `docker exec <db_container> psql …`.
 
-Both are optional but recommanded, `occ fulltextsearch:check` reports either one
-as missing.
+- `unaccent` lets a search without accents match accented content,
+- `pg_trgm` lets partial matching on names use an index instead of scanning the table.
+
+Both are optional, but clear that warning before indexing: the `tsvector` column is generated
+when the table is created, so `unaccent` added later costs a full `occ fulltextsearch:reset`
+and re-index.
 
 ### The app
 
-```sh
-cd /var/www/nextcloud
-git clone https://github.com/Alain-L/fulltextsearch_postgresql \
-    custom_apps/fulltextsearch_postgresql
-chown -R www-data:www-data custom_apps/fulltextsearch_postgresql
+Install **Full text search - PostgreSQL Platform** from Administration → Apps, then open
+Administration → Full text search and pick it under **Search Platform**.
 
-sudo -u www-data php occ app:enable fulltextsearch_postgresql
-sudo -u www-data php occ config:app:set fulltextsearch search_platform \
-    --value 'OCA\FullTextSearch_PostgreSQL\Platform\PostgresPlatform'
+Filling the index the first time is a command:
+
+```sh
 sudo -u www-data php occ fulltextsearch:check                 # platform and extensions
 sudo -u www-data php occ fulltextsearch:index
 sudo -u www-data php occ fulltextsearch:search <user> <term>  # a term you know is indexed
 ```
 
 In a container, replace `sudo -u www-data` with `docker exec -u www-data …`.
-`fulltextsearch:index` draws a full-screen progress display; add `--output json -r` for a
-script or a cron job.
+`fulltextsearch:index` draws a full-screen progress display; `-r` only drops the interactive
+prompt, so send its output to `/dev/null` in a cron job. Nextcloud indexes new files on its
+own from then on.
+
+Without the App Store, clone this repository into `custom_apps/fulltextsearch_postgresql`,
+give it to your web server user, and enable it with `occ app:enable
+fulltextsearch_postgresql`. Everything after that is the same.
 
 ## Configuration
 
@@ -97,8 +111,8 @@ sudo -u www-data php occ fulltextsearch:index
 ```
 
 The settings panel says as much when you save a change. `fulltextsearch:reset` asks twice:
-`y`, then the exact phrase `reset ALL ALL` — anything else aborts silently, so avoid chaining
-it with `&&`.
+`y`, then `reset ALL ALL` — anything else prints `aborted.` and leaves the index alone, so
+avoid chaining it with `&&`.
 
 ## How it works
 
@@ -123,7 +137,7 @@ itself.
 | `+word`          | makes it mandatory, whatever the OR would otherwise let through     |
 | `wor`            | matches by prefix from four characters — `chauff` finds `chauffage` |
 
-`occ fulltextsearch:test` covers all of the above.
+`occ fulltextsearch:test` covers the operators and the phrase syntax, not prefix matching.
 
 ## Known limitations
 
