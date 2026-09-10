@@ -33,6 +33,16 @@ person running it can access.
 - Optional: `pdftotext` (package `poppler-utils`), which reads PDFs faster than the
   bundled library.
 
+### The app
+
+Install [Full text search - PostgreSQL
+Platform](https://apps.nextcloud.com/apps/fulltextsearch_postgresql) from Administration →
+Apps, then open Administration → Full text search and pick it under **Search Platform**.
+
+Without the App Store, clone this repository into `custom_apps/fulltextsearch_postgresql`,
+give it to your web server user, and enable it with `occ app:enable
+fulltextsearch_postgresql`. Everything after that is the same.
+
 ### PostgreSQL extensions, before the first indexing run
 
 The app tries to create `unaccent` and `pg_trgm` on first run. Both are *trusted*, so a role
@@ -65,12 +75,7 @@ Both are optional, but clear that warning before indexing: the `tsvector` column
 when the table is created, so `unaccent` added later costs a full `occ fulltextsearch:reset`
 and re-index.
 
-### The app
-
-Install **Full text search - PostgreSQL Platform** from Administration → Apps, then open
-Administration → Full text search and pick it under **Search Platform**.
-
-Filling the index the first time is a command:
+### The first indexing run
 
 ```sh
 sudo -u www-data php occ fulltextsearch:check                 # platform and extensions
@@ -82,10 +87,6 @@ In a container, replace `sudo -u www-data` with `docker exec -u www-data …`.
 `fulltextsearch:index` draws a full-screen progress display; `-r` only drops the interactive
 prompt, so send its output to `/dev/null` in a cron job. Nextcloud indexes new files on its
 own from then on.
-
-Without the App Store, clone this repository into `custom_apps/fulltextsearch_postgresql`,
-give it to your web server user, and enable it with `occ app:enable
-fulltextsearch_postgresql`. Everything after that is the same.
 
 ## Configuration
 
