@@ -72,14 +72,17 @@ class ContentService {
 		// it is text.
 		$extractor = $this->extractorFor($content);
 		if ($extractor !== null) {
-			return $this->normalise($this->runExtractor($extractor, $content, $document));
+			return $this->normalise(
+				$this->runExtractor($extractor, $content, $document),
+				'"' . $document->getTitle() . '"'
+			);
 		}
 
 		if ($this->looksBinary($content)) {
 			return '';
 		}
 
-		return $this->normalise($content);
+		return $this->normalise($content, '"' . $document->getTitle() . '"');
 	}
 
 	private function extractorFor(string $content): ?ITextExtractor {
@@ -135,7 +138,7 @@ class ContentService {
 			}
 		}
 
-		return $this->normalise(implode("\n", $parts));
+		return $this->normalise(implode("\n", $parts), 'the parts of "' . $document->getTitle() . '"');
 	}
 
 	/**
@@ -161,7 +164,7 @@ class ContentService {
 	 * boundary: an oversized document should be partially indexed, never rejected by the
 	 * generated tsvector column.
 	 */
-	private function normalise(string $content): string {
+	private function normalise(string $content, string $quoi = 'a document'): string {
 		if (!mb_check_encoding($content, 'UTF-8')) {
 			// Windows-1252 accepts any byte: this is the fallback that recovers old CSVs and
 			// latin-1 text files instead of losing them.
@@ -179,7 +182,7 @@ class ContentService {
 			// that works until someone looks for a word near the end.
 			$this->logger->warning(
 				'fulltextsearch_postgresql: kept the first '
-				. round(FtsRequest::MAX_CONTENT_SIZE / 1048576) . ' MiB of a document out of '
+				. round(FtsRequest::MAX_CONTENT_SIZE / 1048576) . ' MiB of ' . $quoi . ' out of '
 				. round($entier / 1048576, 1) . ' MiB; the rest is not searchable.'
 			);
 		}

@@ -70,6 +70,9 @@ class FtsRequest {
 	 */
 	private const SCHEMA_VERSION = '6';
 
+	/** What schemaDrift() answers when the generated column itself is gone. */
+	public const DRIFT_NO_TSV = 'no tsv column';
+
 	/**
 	 * Below this, a word triggers no partial match: the substring would be too common to bring
 	 * anything but noise.
@@ -543,8 +546,6 @@ class FtsRequest {
 	 *
 	 * @return string|null
 	 */
-	public const DRIFT_NO_TSV = 'no tsv column';
-
 	public function schemaDrift(): ?string {
 		try {
 			$result = $this->db->executeQuery(

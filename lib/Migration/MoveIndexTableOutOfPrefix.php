@@ -57,7 +57,10 @@ class MoveIndexTableOutOfPrefix implements IRepairStep {
 
 	public function run(IOutput $output): void {
 		$prefixe = $this->config->getSystemValueString('dbtableprefix', 'oc_');
-		$ancienne = $prefixe . 'fulltextsearch_pg';
+		// Lowercased like any unquoted identifier PostgreSQL ever saw: the table was created
+		// without quotes, so a prefix of `OC_` produced `oc_fulltextsearch_pg`. Quoting the raw
+		// prefix here would look for `"OC_fulltextsearch_pg"` and never find it.
+		$ancienne = strtolower($prefixe . 'fulltextsearch_pg');
 		$nouvelle = FtsRequest::tableFor($prefixe);
 
 		try {
@@ -94,7 +97,7 @@ class MoveIndexTableOutOfPrefix implements IRepairStep {
 			// who ran the ALTER TABLE by hand, or a rename interrupted between the table and
 			// its indexes. Left alone, the next indexing run builds a second set beside them —
 			// two GIN indexes over the same tsvector, paid for on every write.
-			$renommes = $this->renameIndexes($nouvelle);
+			$renommes = $this->renameIndexes($nouvelle, $ancienne);
 		} catch (Throwable $e) {
 			// Said out loud rather than rethrown: an update must not stop here, and losing the
 			// table costs a re-index, not data.
@@ -126,7 +129,7 @@ class MoveIndexTableOutOfPrefix implements IRepairStep {
 	 * old `fts_pg_users_idx` does start with `fts_pg_users_` — a prefix test skips it, and the
 	 * duplicate this method exists to prevent appears anyway.
 	 */
-	private function renameIndexes(string $table): int {
+	private function renameIndexes(string $table, string $ancienne): int {
 		$attendus = [];
 		foreach (self::SUFFIXES as $suffixe) {
 			$attendus[$table . $suffixe] = true;
@@ -152,7 +155,11 @@ class MoveIndexTableOutOfPrefix implements IRepairStep {
 			}
 
 			foreach (self::SUFFIXES as $suffixe) {
-				if (!str_ends_with($vieux, $suffixe)) {
+				// Only the two shapes this app ever produced: `fts_pg_<suffix>` before the names
+				// were derived, and the primary key PostgreSQL named after the old table. A bare
+				// suffix test would also claim an administrator's own `report_owner_idx`.
+				if ($vieux !== FtsRequest::TABLE_PREFIX . $suffixe
+					&& $vieux !== $ancienne . $suffixe) {
 					continue;
 				}
 
@@ -161,7 +168,7 @@ class MoveIndexTableOutOfPrefix implements IRepairStep {
 				// raises “relation already exists” and strands the rest half done, so the
 				// stale twin is dropped instead — same definition, one index kept.
 				if (isset($presents[$table . $suffixe])) {
-					$this->db->executeStatement('DROP INDEX IF EXISTS ' . $this->quote($vieux));
+					$this->bounded('DROP INDEX IF EXISTS ' . $this->quote($vieux));
 				} else {
 					$this->rename('INDEX', $vieux, $table . $suffixe);
 				}
@@ -175,14 +182,26 @@ class MoveIndexTableOutOfPrefix implements IRepairStep {
 	}
 
 	private function rename(string $objet, string $de, string $vers): void {
+		$this->bounded(
+			'ALTER ' . $objet . ' ' . $this->quote($de) . ' RENAME TO ' . $this->quote($vers)
+		);
+	}
+
+	/**
+	 * Runs one statement under the lock timeout, then restores whatever was configured.
+	 *
+	 * `SET lock_timeout = 0` would not restore it — zero means wait forever — and the connection
+	 * is the one `occ upgrade` goes on using for its remaining repair steps and migrations. An
+	 * instance that sets a timeout in postgresql.conf or on the role would silently lose it for
+	 * the rest of the update.
+	 */
+	private function bounded(string $sql): void {
 		$this->db->executeStatement("SET lock_timeout = '" . self::LOCK_TIMEOUT . "'");
 
 		try {
-			$this->db->executeStatement(
-				'ALTER ' . $objet . ' ' . $this->quote($de) . ' RENAME TO ' . $this->quote($vers)
-			);
+			$this->db->executeStatement($sql);
 		} finally {
-			$this->db->executeStatement('SET lock_timeout = 0');
+			$this->db->executeStatement('RESET lock_timeout');
 		}
 	}
 
@@ -195,10 +214,13 @@ class MoveIndexTableOutOfPrefix implements IRepairStep {
 	}
 
 	/**
-	 * Both names are derived from `dbtableprefix`, which an administrator controls — so they are
-	 * filtered down to what a bare identifier may hold before reaching the statement.
+	 * Quotes an identifier the way PostgreSQL does, by doubling the quotes inside it.
+	 *
+	 * Filtering the characters out instead would be fine for names built from `dbtableprefix`,
+	 * but index names come back from `pg_indexes`: a filtered name is a *different* identifier,
+	 * which turns a DROP into a silent no-op and makes an ALTER fail on a name that exists.
 	 */
 	private function quote(string $identifiant): string {
-		return '"' . preg_replace('/[^A-Za-z0-9_]/', '', $identifiant) . '"';
+		return '"' . str_replace('"', '""', $identifiant) . '"';
 	}
 }
