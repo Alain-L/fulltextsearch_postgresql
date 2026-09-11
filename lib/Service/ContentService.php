@@ -171,8 +171,17 @@ class ContentService {
 		$content = mb_convert_encoding($content, 'UTF-8', 'UTF-8');
 		$content = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/u', ' ', $content) ?? $content;
 
-		if (strlen($content) > FtsRequest::MAX_CONTENT_SIZE) {
+		$entier = strlen($content);
+		if ($entier > FtsRequest::MAX_CONTENT_SIZE) {
 			$content = mb_strcut($content, 0, FtsRequest::MAX_CONTENT_SIZE, 'UTF-8');
+			// Said out loud, because the document still turns up in results: it is searchable on
+			// its first few megabytes and silent on the rest, which looks exactly like a search
+			// that works until someone looks for a word near the end.
+			$this->logger->warning(
+				'fulltextsearch_postgresql: kept the first '
+				. round(FtsRequest::MAX_CONTENT_SIZE / 1048576) . ' MiB of a document out of '
+				. round($entier / 1048576, 1) . ' MiB; the rest is not searchable.'
+			);
 		}
 
 		return trim($content);

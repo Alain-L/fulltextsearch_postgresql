@@ -37,6 +37,23 @@ class PdfExtractor implements ITextExtractor {
 	private const MAX_PAGES = 200;
 	private const TIMEOUT_SECONDS = 30;
 
+	/**
+	 * What the bundled parser is allowed to be handed, and how much room it is assumed to need.
+	 *
+	 * pdftotext is a separate process: it can fail, it cannot exhaust PHP's memory. The bundled
+	 * parser runs in-process and decompresses streams as it goes, and a PHP fatal error is not
+	 * catchable — no try/catch, nothing runs afterwards, the whole indexing run is over. Seen on
+	 * a real corpus: 512M exhausted on one PDF, 796 documents in, and a stale “running” lock
+	 * left behind for half an hour.
+	 *
+	 * So the defence has to be taken before the call. Neither number can be exact — a PDF's
+	 * compressed streams say little about what they expand to — which is why both are used:
+	 * refuse what is plainly too big, and refuse anything for which the remaining headroom
+	 * looks thin. Skipping a document costs its content; getting this wrong costs the run.
+	 */
+	private const MAX_PARSER_INPUT = 8388608;
+	private const PARSER_HEADROOM_FACTOR = 12;
+
 	private ?string $poppler = null;
 	private bool $popplerLookedUp = false;
 
@@ -73,7 +90,64 @@ class PdfExtractor implements ITextExtractor {
 			$this->logger->debug('fulltextsearch_postgresql: pdftotext failed, falling back to pdfparser');
 		}
 
+		$refus = $this->whyParserCannotRun($content);
+		if ($refus !== null) {
+			$this->logger->warning(
+				'fulltextsearch_postgresql: skipped the text of a PDF rather than risk the '
+				. 'indexing run — ' . $refus . '. Install pdftotext (poppler-utils): it runs as '
+				. 'a separate process and has no such limit. The document is still indexed on '
+				. 'its title.'
+			);
+
+			return '';
+		}
+
 		return (new Parser())->parseContent($content)->getText();
+	}
+
+	/**
+	 * Why the bundled parser must not be handed this document, or null when it may be.
+	 */
+	private function whyParserCannotRun(string $content): ?string {
+		$taille = strlen($content);
+		if ($taille > self::MAX_PARSER_INPUT) {
+			return 'it is ' . round($taille / 1048576, 1) . ' MiB, over the '
+				. round(self::MAX_PARSER_INPUT / 1048576) . ' MiB the bundled parser is trusted with';
+		}
+
+		$limite = $this->memoryLimit();
+		if ($limite === null) {
+			return null;
+		}
+
+		$marge = $limite - memory_get_usage(true);
+		$besoin = $taille * self::PARSER_HEADROOM_FACTOR;
+		if ($marge < $besoin) {
+			return 'only ' . round($marge / 1048576) . ' MiB of PHP memory is left, and the '
+				. 'bundled parser may want around ' . round($besoin / 1048576) . ' MiB for it';
+		}
+
+		return null;
+	}
+
+	/**
+	 * The PHP memory ceiling in bytes, or null when there is none.
+	 */
+	private function memoryLimit(): ?int {
+		$brut = trim((string)ini_get('memory_limit'));
+		if ($brut === '' || $brut === '-1') {
+			return null;
+		}
+
+		$unite = strtolower(substr($brut, -1));
+		$valeur = (int)$brut;
+
+		return match ($unite) {
+			'g' => $valeur * 1073741824,
+			'm' => $valeur * 1048576,
+			'k' => $valeur * 1024,
+			default => $valeur,
+		};
 	}
 
 	/**

@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Index names are derived from the table name, the two trigram ones included, so they no longer
   collide when several installations share a schema. The rename carries them over, rather than
   leaving a second set to be created beside the first.
+- A large PDF no longer takes the whole indexing run down with it. The bundled parser works
+  in-process and can exhaust PHP's memory, which is a fatal error: nothing catches it, and
+  indexing stops where it stands. Documents it cannot be trusted with are now indexed on their
+  title alone, and the reason is logged. Installing `pdftotext` (package `poppler-utils`) lifts
+  the limit entirely — it runs as a separate process.
+- Truncating a document at the 4 MiB cap is now logged. It was silent, and the document still
+  came up in results, searchable on its beginning and mute on the rest.
 
 ### If you are stuck
 
