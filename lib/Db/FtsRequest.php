@@ -14,6 +14,7 @@ use OCP\DB\Exception as DBException;
 use OCA\FullTextSearch_PostgreSQL\ConfigLexicon;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IAppConfig;
+use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\L10N\IFactory;
 use Psr\Log\LoggerInterface;
@@ -30,7 +31,21 @@ use Throwable;
  * `*PREFIX*` is substituted by IDBConnection (see \OC\DB\Connection::finishQuery()).
  */
 class FtsRequest {
-	public const TABLE = '*PREFIX*fulltextsearch_pg';
+	/**
+	 * Deliberately outside the Nextcloud table prefix.
+	 *
+	 * `OC\DB\Migrator::createSchema()` filters introspection on `/^<dbtableprefix>/` and then
+	 * hands every matching table to Doctrine. Doctrine maps `tsvector` and `jsonb`, but nothing
+	 * to `text[]` — so a prefixed name stops `occ upgrade` at its first core migration with
+	 * “Unknown database type _text”, and the server stays in maintenance mode. No Nextcloud
+	 * migration manages this table; it has no business in that scan.
+	 *
+	 * The prefix still appears, at the end. Not for two Nextcloud instances sharing a schema —
+	 * that cannot happen, as Nextcloud's own index names carry no prefix and the second install
+	 * dies on `relation "ac_lazy_i" already exists` — but so that installations sharing a
+	 * database through separate schemas, or moved between them, never meet over one index.
+	 */
+	public const TABLE_PREFIX = 'fts_pg';
 
 
 
@@ -84,12 +99,49 @@ class FtsRequest {
 	 */
 	private const SHARE_FIELD_PREFIX = 'share_names.';
 
+	private readonly string $table;
+	private readonly string $prefixNextcloud;
+
 	public function __construct(
 		private IDBConnection $db,
 		private IAppConfig $appConfig,
 		private IFactory $l10nFactory,
 		private LoggerInterface $logger,
+		IConfig $systemConfig,
 	) {
+		$this->prefixNextcloud = $systemConfig->getSystemValueString('dbtableprefix', 'oc_');
+		$this->table = self::tableFor($this->prefixNextcloud);
+	}
+
+	/**
+	 * Whether the index table falls inside the range Nextcloud hands to Doctrine anyway.
+	 *
+	 * Two prefixes defeat the naming rule. An empty one turns the filter into `/^/`, which
+	 * matches everything — no name can escape it. And one starting with `fts_pg` catches the
+	 * derived name itself. Both bring back the failure this table was moved to avoid, and
+	 * nothing else would tell the administrator why.
+	 */
+	public function insidePrefixRange(): bool {
+		return str_starts_with($this->table, $this->prefixNextcloud);
+	}
+
+	/**
+	 * The index table for a given Nextcloud table prefix.
+	 *
+	 * Kept static and pure so the repair step can name the old table without a second copy of
+	 * the rule. Non-word characters are dropped: the result goes into SQL as an identifier.
+	 */
+	public static function tableFor(string $prefixNextcloud): string {
+		$suffixe = preg_replace('/[^a-z0-9]/', '', strtolower($prefixNextcloud)) ?? '';
+
+		return self::TABLE_PREFIX . ($suffixe === '' ? '' : '_' . $suffixe);
+	}
+
+	/**
+	 * Where the index lives. Used by the platform to report it in `occ fulltextsearch:check`.
+	 */
+	public function table(): string {
+		return $this->table;
 	}
 
 	/**
@@ -334,9 +386,14 @@ class FtsRequest {
 	}
 
 	public function tableExists(): bool {
-		// The name passed here is WITHOUT the prefix — IDBConnection adds it — and it is the
-		// table's, not the app's: the two diverged when the latter was renamed.
-		return $this->db->tableExists(ltrim(str_replace('*PREFIX*', '', self::TABLE), '*'));
+		// Asked of PostgreSQL directly, not through IDBConnection::tableExists(), which prepends
+		// the Nextcloud prefix to whatever it is given: our table sits outside that prefix on
+		// purpose, so it would look for `oc_fts_pg_oc` and never find anything.
+		$result = $this->db->executeQuery('SELECT to_regclass(?) IS NOT NULL AS present', [$this->table]);
+		$present = (bool)$result->fetchOne();
+		$result->closeCursor();
+
+		return $present;
 	}
 
 	/**
@@ -365,7 +422,7 @@ class FtsRequest {
 		$this->dropOnSchemaChange();
 
 		$this->db->executeStatement(
-			'CREATE TABLE IF NOT EXISTS ' . self::TABLE . ' (
+			'CREATE TABLE IF NOT EXISTS ' . $this->table . ' (
 				provider_id   varchar(64)   NOT NULL,
 				document_id   varchar(128)  NOT NULL,
 				owner_id      varchar(64)   NOT NULL DEFAULT \'\',
@@ -401,18 +458,18 @@ class FtsRequest {
 		);
 
 		$this->db->executeStatement(
-			'COMMENT ON TABLE ' . self::TABLE . " IS '" . self::SCHEMA_VERSION . ':'
+			'COMMENT ON TABLE ' . $this->table . " IS '" . self::SCHEMA_VERSION . ':'
 			. implode('+', $this->tsConfigs()) . "'"
 		);
 
 		foreach ([
-			'CREATE INDEX IF NOT EXISTS fts_pg_tsv_idx ON ' . self::TABLE . ' USING gin (tsv)',
-			'CREATE INDEX IF NOT EXISTS fts_pg_users_idx ON ' . self::TABLE . ' USING gin (acl_users)',
-			'CREATE INDEX IF NOT EXISTS fts_pg_groups_idx ON ' . self::TABLE . ' USING gin (acl_groups)',
-			'CREATE INDEX IF NOT EXISTS fts_pg_circles_idx ON ' . self::TABLE . ' USING gin (acl_circles)',
-			'CREATE INDEX IF NOT EXISTS fts_pg_owner_idx ON ' . self::TABLE . ' (provider_id, owner_id)',
-			'CREATE INDEX IF NOT EXISTS fts_pg_metatags_idx ON ' . self::TABLE . ' USING gin (metatags)',
-			'CREATE INDEX IF NOT EXISTS fts_pg_subtags_idx ON ' . self::TABLE . ' USING gin (subtags)',
+			'CREATE INDEX IF NOT EXISTS ' . $this->table . '_tsv_idx ON ' . $this->table . ' USING gin (tsv)',
+			'CREATE INDEX IF NOT EXISTS ' . $this->table . '_users_idx ON ' . $this->table . ' USING gin (acl_users)',
+			'CREATE INDEX IF NOT EXISTS ' . $this->table . '_groups_idx ON ' . $this->table . ' USING gin (acl_groups)',
+			'CREATE INDEX IF NOT EXISTS ' . $this->table . '_circles_idx ON ' . $this->table . ' USING gin (acl_circles)',
+			'CREATE INDEX IF NOT EXISTS ' . $this->table . '_owner_idx ON ' . $this->table . ' (provider_id, owner_id)',
+			'CREATE INDEX IF NOT EXISTS ' . $this->table . '_metatags_idx ON ' . $this->table . ' USING gin (metatags)',
+			'CREATE INDEX IF NOT EXISTS ' . $this->table . '_subtags_idx ON ' . $this->table . ' USING gin (subtags)',
 		] as $sql) {
 			$this->db->executeStatement($sql);
 		}
@@ -423,14 +480,14 @@ class FtsRequest {
 		// indexes in a BitmapOr.
 		if ($trigram) {
 			$this->db->executeStatement(
-				'CREATE INDEX IF NOT EXISTS fts_pg_title_trgm_idx ON ' . self::TABLE
+				'CREATE INDEX IF NOT EXISTS ' . $this->table . '_title_trgm_idx ON ' . $this->table
 				. ' USING gin (title gin_trgm_ops)'
 			);
 			// The counterpart for share names: see wildcardConditions(), which uses it as a
 			// pre-filter. Measured on 200,000 documents, searching for a rare term: 86 ms without
 			// it, 0.2 ms with. It weighs 1.1 MB for 360 MB of table.
 			$this->db->executeStatement(
-				'CREATE INDEX IF NOT EXISTS fts_pg_share_trgm_idx ON ' . self::TABLE
+				'CREATE INDEX IF NOT EXISTS ' . $this->table . '_share_trgm_idx ON ' . $this->table
 				. ' USING gin (share_text gin_trgm_ops)'
 			);
 		}
@@ -486,11 +543,16 @@ class FtsRequest {
 	 *
 	 * @return string|null
 	 */
+	public const DRIFT_NO_TSV = 'no tsv column';
+
 	public function schemaDrift(): ?string {
 		try {
 			$result = $this->db->executeQuery(
-				"SELECT to_regclass('" . self::TABLE . "') IS NOT NULL AS present,
-						obj_description(to_regclass('" . self::TABLE . "'), 'pg_class') AS version"
+				"SELECT to_regclass('" . $this->table . "') IS NOT NULL AS present,
+						obj_description(to_regclass('" . $this->table . "'), 'pg_class') AS version,
+						EXISTS (SELECT 1 FROM pg_attribute
+								WHERE attrelid = to_regclass('" . $this->table . "')
+								  AND attname = 'tsv' AND NOT attisdropped) AS has_tsv"
 			);
 			$row = $result->fetch();
 			$result->closeCursor();
@@ -505,6 +567,12 @@ class FtsRequest {
 			return null;
 		}
 
+		// Reported before the signature: a table that lost its tsv column answers every search
+		// with an SQL error, while its comment still matches and every other field reads clean.
+		if (!(bool)($row['has_tsv'] ?? false)) {
+			return self::DRIFT_NO_TSV;
+		}
+
 		$found = $row['version'] ?? 'unversioned';
 		$cible = $this->targetSignature();
 
@@ -517,10 +585,10 @@ class FtsRequest {
 		// table with no comment is a table from before versioning, hence to be rebuilt — not to be
 		// confused with a missing table, where there is nothing to do.
 		$result = $this->db->executeQuery(
-			"SELECT to_regclass('" . self::TABLE . "') IS NOT NULL AS present,
-					obj_description(to_regclass('" . self::TABLE . "'), 'pg_class') AS version,
+			"SELECT to_regclass('" . $this->table . "') IS NOT NULL AS present,
+					obj_description(to_regclass('" . $this->table . "'), 'pg_class') AS version,
 					EXISTS (SELECT 1 FROM pg_attribute
-							WHERE attrelid = to_regclass('" . self::TABLE . "')
+							WHERE attrelid = to_regclass('" . $this->table . "')
 							  AND attname = 'tsv' AND NOT attisdropped) AS has_tsv"
 		);
 		$row = $result->fetch();
@@ -541,7 +609,7 @@ class FtsRequest {
 				. 'Rebuilding the table; run "occ fulltextsearch:reset" then '
 				. '"occ fulltextsearch:index" to refill it.'
 			);
-			$this->db->executeStatement('DROP TABLE IF EXISTS ' . self::TABLE);
+			$this->db->executeStatement('DROP TABLE IF EXISTS ' . $this->table);
 
 			return;
 		}
@@ -554,7 +622,7 @@ class FtsRequest {
 				. 'are indexed, so a plain re-index would do nothing: run '
 				. '"occ fulltextsearch:reset" then "occ fulltextsearch:index".'
 			);
-			$this->db->executeStatement('DROP TABLE IF EXISTS ' . self::TABLE);
+			$this->db->executeStatement('DROP TABLE IF EXISTS ' . $this->table);
 		}
 	}
 
@@ -624,13 +692,13 @@ class FtsRequest {
 		}
 
 		if ($providerId === 'all') {
-			$this->db->executeStatement('TRUNCATE ' . self::TABLE);
+			$this->db->executeStatement('TRUNCATE ' . $this->table);
 
 			return;
 		}
 
 		$this->db->executeStatement(
-			'DELETE FROM ' . self::TABLE . ' WHERE provider_id = ?', [$providerId]
+			'DELETE FROM ' . $this->table . ' WHERE provider_id = ?', [$providerId]
 		);
 	}
 
@@ -639,7 +707,7 @@ class FtsRequest {
 	 */
 	public function delete(string $providerId, string $documentId): void {
 		$this->db->executeStatement(
-			'DELETE FROM ' . self::TABLE . ' WHERE provider_id = ? AND document_id = ?',
+			'DELETE FROM ' . $this->table . ' WHERE provider_id = ? AND document_id = ?',
 			[$providerId, $documentId]
 		);
 	}
@@ -658,7 +726,7 @@ class FtsRequest {
 	 * @throws DBException
 	 */
 	public function upsert(array $row, bool $updateContent = true): void {
-		$sql = 'INSERT INTO ' . self::TABLE . ' (
+		$sql = 'INSERT INTO ' . $this->table . ' (
 				provider_id, document_id, owner_id,
 				acl_users, acl_groups, acl_circles,
 				source, title, content, parts, parts_text,
@@ -801,7 +869,7 @@ class FtsRequest {
 					-- Computed before the LIMIT, hence over every match and not over the single
 					-- page rendered: the relative ranking depends on it.
 					max(ts_rank(tsv, qq.tsq_or)) OVER () AS max_score
-				FROM ' . self::TABLE . ', qq
+				FROM ' . $this->table . ', qq
 				WHERE ' . implode("\n\t\t\t\t\tAND ", $where) . '
 				-- Documents carrying ALL the terms come first: the recall of an OR, the precision
 				-- of an AND in the ranking.
@@ -819,7 +887,7 @@ class FtsRequest {
 					\'MaxFragments=1, MinWords=5, MaxWords=20, FragmentDelimiter= … , StartSel="", StopSel=""\'
 				) AS excerpt_parts
 			FROM page
-				JOIN ' . self::TABLE . ' doc USING (provider_id, document_id),
+				JOIN ' . $this->table . ' doc USING (provider_id, document_id),
 				qq
 			ORDER BY page.all_terms DESC, page.score DESC, page.modified_at DESC';
 
@@ -876,7 +944,7 @@ class FtsRequest {
 					)::tsquery AS tsq_or
 				FROM q
 			)
-			SELECT count(*) FROM ' . self::TABLE . ', qq
+			SELECT count(*) FROM ' . $this->table . ', qq
 			WHERE ' . implode("\n\t\t\t\tAND ", $where);
 
 		$result = $this->db->executeQuery($sql, $params, $types);
@@ -1172,7 +1240,7 @@ class FtsRequest {
 					to_jsonb(tags) AS tags,
 					to_jsonb(links) AS links,
 					parts, info, share_names
-				FROM ' . self::TABLE . '
+				FROM ' . $this->table . '
 				WHERE provider_id = ? AND document_id = ?',
 			[$providerId, $documentId]
 		);
@@ -1190,8 +1258,8 @@ class FtsRequest {
 	 */
 	public function stats(): array {
 		$result = $this->db->executeQuery(
-			'SELECT count(*) AS documents, pg_size_pretty(pg_total_relation_size(\'' . self::TABLE . '\')) AS size
-				FROM ' . self::TABLE
+			'SELECT count(*) AS documents, pg_size_pretty(pg_total_relation_size(\'' . $this->table . '\')) AS size
+				FROM ' . $this->table
 		);
 		$row = $result->fetch();
 		$result->closeCursor();

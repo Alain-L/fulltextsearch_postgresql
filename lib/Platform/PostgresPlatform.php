@@ -55,7 +55,7 @@ class PostgresPlatform implements IFullTextSearchPlatform {
 	public function getConfiguration(): array {
 		$config = [
 			'pdf_engine' => $this->contentService->pdfEngine(),
-			'table' => FtsRequest::TABLE,
+			'table' => $this->request->table(),
 			'languages' => implode(', ', $this->request->languages()),
 			'text_search_configs' => implode(', ', $this->request->tsConfigs()),
 			'max_content_size' => FtsRequest::MAX_CONTENT_SIZE,
@@ -86,8 +86,22 @@ class PostgresPlatform implements IFullTextSearchPlatform {
 			// The table is rebuilt by fulltextsearch:index, never by check — so between an
 			// extension appearing and the next indexing run, the column still ignores it while
 			// every field above reads clean. Say it here or nobody finds out.
+			if ($this->request->insidePrefixRange()) {
+				$avertissements[] = 'the index table ' . $this->request->table() . ' falls inside '
+					. 'the Nextcloud table prefix, so Doctrine introspects it during schema '
+					. 'migrations and breaks on "Unknown database type _text" — skipped repair '
+					. 'steps at best, a failed "occ upgrade" at worst. An empty dbtableprefix, or '
+					. 'one starting with "fts_pg", does this. Move the instance to a prefix that '
+					. 'is neither, or rename the table by hand before each Nextcloud update.';
+			}
+
 			$decalage = $this->request->schemaDrift();
-			if ($decalage !== null) {
+			if ($decalage === FtsRequest::DRIFT_NO_TSV) {
+				$avertissements[] = 'the index table has lost its tsv column, which happens when '
+					. 'a text search configuration it depends on is dropped with CASCADE. Every '
+					. 'search fails on it until the table is rebuilt: run "occ fulltextsearch:index" '
+					. 'to recreate it, then "occ fulltextsearch:reset" and index again to refill it.';
+			} elseif ($decalage !== null) {
 				$avertissements[] = 'the index table was built for a different configuration ('
 					. $decalage . '): searches still use the old one. Run '
 					. '"occ fulltextsearch:reset" then "occ fulltextsearch:index" to rebuild it.';

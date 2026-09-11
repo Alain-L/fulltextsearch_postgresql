@@ -45,7 +45,7 @@ et pg_trgm s'installent d'elles-mêmes si les droits de la base le permettent ; 
 recherche reste sensible aux accents, jusqu'à ce qu'un administrateur les crée.
 ]]>
 	</description>
-	<version>0.1.1</version>
+	<version>0.1.2</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author>Alain Lesage</author>
 	<namespace>FullTextSearch_PostgreSQL</namespace>
@@ -62,6 +62,12 @@ recherche reste sensible aux accents, jusqu'à ce qu'un administrateur les crée
 		<database min-version="15">pgsql</database>
 		<nextcloud min-version="32" max-version="34"/>
 	</dependencies>
+
+	<repair-steps>
+		<post-migration>
+			<step>OCA\FullTextSearch_PostgreSQL\Migration\MoveIndexTableOutOfPrefix</step>
+		</post-migration>
+	</repair-steps>
 
 	<settings>
 		<admin>OCA\FullTextSearch_PostgreSQL\Settings\Admin</admin>
