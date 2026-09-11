@@ -30,8 +30,10 @@ person running it can access.
   provider — normally
   [Full text search - Files](https://apps.nextcloud.com/apps/files_fulltextsearch). Install
   those first.
-- Optional: `pdftotext` (package `poppler-utils`), which reads PDFs faster than the
-  bundled library.
+- `pdftotext` (package `poppler-utils`): optional, but worth installing. It reads PDFs faster
+  than the bundled parser, and runs as a separate process, so no PDF can exhaust PHP's memory.
+  Without it, give the indexing run a `memory_limit` of 2G — the bundled parser can exhaust
+  512M on a single large PDF, and that fatal error ends the whole run.
 
 ### The app
 
