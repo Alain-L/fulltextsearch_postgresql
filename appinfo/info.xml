@@ -11,38 +11,43 @@
 	<summary>Index and search with the PostgreSQL database Nextcloud already runs on</summary>
 	<summary lang="fr">Indexation et recherche dans la base PostgreSQL sur laquelle Nextcloud tourne déjà</summary>
 	<description><![CDATA[
-This platform stores the Full text search index in PostgreSQL, the database your Nextcloud
-already uses, with no other service to install.
+Full text search for Nextcloud without a search server: the index lives in the PostgreSQL
+database your Nextcloud already uses.
 
-- Language-aware indexing, with an accent-folding variant so "numerisation" finds
-  "numérisation". The app picks up your instance language, and can combine several.
-- The app reads PDF and office formats itself (docx, xlsx, pptx, odt, ods, odp), with no
-  external extraction service.
-- Permissions are indexed with the content: a search only ever returns documents the person
-  running it can access.
+PostgreSQL uses less memory and disk space, without sacrificing response time or search
+quality.
+
+- Indexing follows the language and folds accents, so "numerisation" finds "numérisation". The
+  app takes the language of your instance, and can combine several.
+- The app reads PDF and office files itself (docx, xlsx, pptx, odt, ods, odp), with no
+  extraction service.
+- Permissions are indexed with the content, so a search only returns documents the person
+  running it can open.
 
 Requires the Full text search app (fulltextsearch) and a content provider, usually the one for
-files (files_fulltextsearch). The unaccent and pg_trgm PostgreSQL extensions install themselves
-if the database privileges allow; otherwise search stays accent-sensitive until an
-administrator creates them.
+files (files_fulltextsearch). The unaccent and pg_trgm extensions install themselves when the
+database privileges allow; otherwise search stays accent-sensitive until an administrator
+creates them.
 ]]>
 	</description>
 	<description lang="fr"><![CDATA[
-Cette plateforme stocke l'index de Recherche plein-texte dans PostgreSQL, la base de données
-que votre Nextcloud utilise déjà, sans autre service à installer.
+La recherche plein-texte de Nextcloud sans serveur de recherche : l'index vit dans la base de
+données PostgreSQL que votre Nextcloud utilise déjà.
 
-- Indexation adaptée à la langue, avec une variante qui replie les accents : « numerisation »
-  trouve « numérisation ». L'application reprend la langue de votre instance, et sait en
-  combiner plusieurs.
-- L'application lit elle-même les PDF et les formats bureautiques (docx, xlsx, pptx, odt, ods,
-  odp), sans service d'extraction externe.
-- Les droits sont indexés avec le contenu : une recherche ne remonte que les documents
-  auxquels la personne qui la lance a accès.
+PostgreSQL permet de consommer moins de mémoire et de disque, sans perdre en temps de
+réponse ni en qualité de recherche.
 
-Nécessite l'application Recherche plein-texte (fulltextsearch) et un fournisseur de contenu,
-le plus souvent celui des fichiers (files_fulltextsearch). Les extensions PostgreSQL unaccent
-et pg_trgm s'installent d'elles-mêmes si les droits de la base le permettent ; sinon la
-recherche reste sensible aux accents, jusqu'à ce qu'un administrateur les crée.
+- L'indexation suit la langue et replie les accents : « numerisation » trouve « numérisation ».
+  L'application reprend la langue de votre instance, et sait en combiner plusieurs.
+- L'application lit elle-même les PDF et les fichiers bureautiques (docx, xlsx, pptx, odt, ods,
+  odp), sans service d'extraction.
+- Les droits sont indexés avec le contenu : une recherche ne remonte que les documents que la
+  personne qui la lance peut ouvrir.
+
+Nécessite l'application Recherche plein-texte (fulltextsearch) et un fournisseur de contenu, le
+plus souvent celui des fichiers (files_fulltextsearch). Les extensions unaccent et pg_trgm
+s'installent d'elles-mêmes si les droits de la base le permettent ; sinon la recherche reste
+sensible aux accents, jusqu'à ce qu'un administrateur les crée.
 ]]>
 	</description>
 	<version>0.1.3</version>
@@ -56,6 +61,7 @@ recherche reste sensible aux accents, jusqu'à ce qu'un administrateur les crée
 	<website>https://github.com/Alain-L/fulltextsearch_postgresql</website>
 	<bugs>https://github.com/Alain-L/fulltextsearch_postgresql/issues</bugs>
 	<repository type="git">https://github.com/Alain-L/fulltextsearch_postgresql.git</repository>
+	<screenshot>https://raw.githubusercontent.com/Alain-L/fulltextsearch_postgresql/main/screenshots/search-results.png</screenshot>
 	<screenshot>https://raw.githubusercontent.com/Alain-L/fulltextsearch_postgresql/main/screenshots/admin-settings.png</screenshot>
 
 	<dependencies>

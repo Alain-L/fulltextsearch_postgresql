@@ -24,7 +24,7 @@ person running it can access.
 
 ### Prerequisites
 
-- **Nextcloud 32 to 34**, on **PostgreSQL 15 or later**. Both ends of the Nextcloud range
+- **Nextcloud 32 to 35**, on **PostgreSQL 15 or later**. Both ends of the Nextcloud range
   are tested, as are PostgreSQL 15 and 18.
 - The [Full text search](https://apps.nextcloud.com/apps/fulltextsearch) app and a content
   provider — normally
