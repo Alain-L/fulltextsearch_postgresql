@@ -3,6 +3,17 @@
 This format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## 0.1.3 — 2026-09-20
+
+### Added
+
+- Nextcloud 35 is supported. The app was tested against 35.0.0, with `fulltextsearch` and
+  `files_fulltextsearch` 35.0.0, on a fresh install and on a server upgraded from 34: the index
+  survives the upgrade untouched, so no re-indexing is needed.
+- If you upgraded to Nextcloud 35 while running 0.1.2, the server disabled the app as
+  incompatible and search fell back to the built-in one. Update the app to 0.1.3 and enable it
+  again: the index is still there, and nothing has to be re-indexed.
+
 ## 0.1.2 — 2026-09-11
 
 ### Fixed
