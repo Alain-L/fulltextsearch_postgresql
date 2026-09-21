@@ -61,8 +61,8 @@ sensible aux accents, jusqu'à ce qu'un administrateur les crée.
 	<website>https://github.com/Alain-L/fulltextsearch_postgresql</website>
 	<bugs>https://github.com/Alain-L/fulltextsearch_postgresql/issues</bugs>
 	<repository type="git">https://github.com/Alain-L/fulltextsearch_postgresql.git</repository>
-	<screenshot>https://raw.githubusercontent.com/Alain-L/fulltextsearch_postgresql/main/screenshots/search-results.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/Alain-L/fulltextsearch_postgresql/main/screenshots/admin-settings.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/Alain-L/fulltextsearch_postgresql/main/screenshots/search-without-accents.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/Alain-L/fulltextsearch_postgresql/main/screenshots/settings-indexing-language.png</screenshot>
 
 	<dependencies>
 		<database min-version="15">pgsql</database>
