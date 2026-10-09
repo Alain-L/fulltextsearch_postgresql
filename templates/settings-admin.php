@@ -17,7 +17,7 @@ $auto = $_['raw'] === 'auto';
 <div id="fulltextsearch_postgresql" class="section"
 	data-save-url="<?php p($_['saveUrl']); ?>"
 	data-msg-saved="<?php p($l->t('Saved.')); ?>"
-	data-msg-reindex="<?php p($l->t('The index has been rebuilt. To fill it again, run: occ fulltextsearch:reset && occ fulltextsearch:index')); ?>"
+	data-msg-reindex="<?php p($l->t('Saved. The new language applies once the index is rebuilt: run occ fulltextsearch:reset, then occ fulltextsearch:index.')); ?>"
 	data-msg-pick="<?php p($l->t('Add at least one language.')); ?>"
 	data-msg-error="<?php p($l->t('Could not save.')); ?>"
 	data-msg-remove="<?php p($l->t('Remove')); ?>"

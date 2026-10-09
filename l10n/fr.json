@@ -6,7 +6,7 @@
         "Save": "Enregistrer",
         "Could not save.": "Impossible d'enregistrer.",
         "Saved.": "Enregistré.",
-        "The index has been rebuilt. To fill it again, run: occ fulltextsearch:reset && occ fulltextsearch:index": "L'index a été reconstruit. Pour le remplir à nouveau, lancez : occ fulltextsearch:reset && occ fulltextsearch:index",
+        "Saved. The new language applies once the index is rebuilt: run occ fulltextsearch:reset, then occ fulltextsearch:index.": "Enregistré. La nouvelle langue s'appliquera une fois l'index reconstruit : lancez occ fulltextsearch:reset, puis occ fulltextsearch:index.",
         "The language decides how words are reduced to their stem, which accents are folded, and which words are ignored.": "La langue détermine comment les mots sont ramenés à leur racine, quels accents sont repliés et quels mots sont ignorés.",
         "Indexing languages": "Langues d'indexation",
         "Add a language…": "Ajouter une langue…",
