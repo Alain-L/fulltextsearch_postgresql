@@ -461,8 +461,7 @@ class FtsRequest {
 		);
 
 		$this->db->executeStatement(
-			'COMMENT ON TABLE ' . $this->table . " IS '" . self::SCHEMA_VERSION . ':'
-			. implode('+', $this->tsConfigs()) . "'"
+			'COMMENT ON TABLE ' . $this->table . " IS '" . $this->schemaSignature() . "'"
 		);
 
 		foreach ([
