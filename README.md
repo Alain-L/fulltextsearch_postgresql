@@ -106,7 +106,7 @@ own from then on.
 The indexing language is the only setting, and lives under Administration → Full text
 search. The panel lists the text search configurations installed on your server.
 
-![The settings panel, under Administration → Full text search](https://raw.githubusercontent.com/Alain-L/fulltextsearch_postgresql/main/screenshots/admin-settings.png)
+![The settings panel, under Administration → Full text search](https://raw.githubusercontent.com/Alain-L/fulltextsearch_postgresql/main/screenshots/settings-indexing-language.png)
 
 `search_language` defaults to `auto`, which follows the Nextcloud instance
 language; a language PostgreSQL does not know falls back to English. Several can
