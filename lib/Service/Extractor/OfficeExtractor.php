@@ -33,6 +33,16 @@ class OfficeExtractor implements ITextExtractor {
 	private const MAX_EXTRACTED = 8388608;
 
 	/**
+	 * Cap on the XML read out of one entry.
+	 *
+	 * MAX_EXTRACTED is only looked at once an entry has been read whole and copied by toText():
+	 * a sheet of a few megabytes compressed unfolds entirely into memory before any limit
+	 * applies. getFromIndex() decompresses as it reads, so a length bounds the memory too.
+	 * 32 MiB of XML holds several times the text ContentService keeps in the end.
+	 */
+	private const MAX_ENTRY_READ = 33554432;
+
+	/**
 	 * The body is split across entries: one per sheet, one per slide, headers and footers apart.
 	 */
 	private const ENTRIES = [
@@ -97,7 +107,7 @@ class OfficeExtractor implements ITextExtractor {
 				continue;
 			}
 
-			$xml = $zip->getFromIndex($i);
+			$xml = $zip->getFromIndex($i, self::MAX_ENTRY_READ);
 			if ($xml === false) {
 				continue;
 			}
@@ -117,7 +127,7 @@ class OfficeExtractor implements ITextExtractor {
 				continue;
 			}
 
-			$xml = $zip->getFromIndex($i);
+			$xml = $zip->getFromIndex($i, self::MAX_ENTRY_READ);
 			if ($xml === false) {
 				continue;
 			}
