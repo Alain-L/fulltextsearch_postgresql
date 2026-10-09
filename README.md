@@ -45,6 +45,17 @@ Without the App Store, clone this repository into `custom_apps/fulltextsearch_po
 give it to your web server user, and enable it with `occ app:enable
 fulltextsearch_postgresql`. Everything after that is the same.
 
+The same choice can be made from the command line, which is what a scripted install wants:
+
+```bash
+sudo -u www-data php occ config:app:set fulltextsearch search_platform \
+  --value='OCA\FullTextSearch_PostgreSQL\Platform\PostgresPlatform'
+```
+
+The value is the class this app declares, and the framework matches it exactly, so a shortened
+one leaves indexing with `FullTextSearchPlatform ... is not available`. `occ
+fulltextsearch:check` prints the platform actually in use.
+
 ### PostgreSQL extensions, before the first indexing run
 
 The app tries to create `unaccent` and `pg_trgm` on first run. Both are *trusted*, so a role
