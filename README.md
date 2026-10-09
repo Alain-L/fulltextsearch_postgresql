@@ -112,6 +112,10 @@ search. The panel lists the text search configurations installed on your server.
 language; a language PostgreSQL does not know falls back to English. Several can
 be combined for a mixed corpus, at roughly 20% of index size each.
 
+With `auto`, the instance language is `default_language` in `config.php`, and English when it
+is not set, whatever language each user picked. A French instance without it indexes in
+English: set it, or pick the language explicitly.
+
 Changing the language re-indexes everything from scratch. The `tsvector` column
 is generated, so it cannot be altered in place: the table is dropped and every
 document is extracted again. Nextcloud still believes they are indexed, hence

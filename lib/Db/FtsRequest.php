@@ -237,9 +237,13 @@ class FtsRequest {
 	/**
 	 * The instance language, translated into a PostgreSQL configuration.
 	 * “fr_CA” like “fr” gives french; whatever we cannot translate gives English.
+	 *
+	 * findGenericLanguage(), not findLanguage(): the latter answers the current user's language
+	 * on the web and the instance default on the command line, so the index would be built in
+	 * one language and searched in another.
 	 */
 	private function detectLanguage(): string {
-		$code = strtolower(substr($this->l10nFactory->findLanguage(), 0, 2));
+		$code = strtolower(substr($this->l10nFactory->findGenericLanguage(), 0, 2));
 		$langue = self::LANGUAGE_MAP[$code] ?? ConfigLexicon::FALLBACK_LANGUAGE;
 
 		return $this->languageExists($langue) ? $langue : ConfigLexicon::FALLBACK_LANGUAGE;
