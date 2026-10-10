@@ -3,6 +3,26 @@
 This format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## 0.1.4 — 2026-10-10
+
+### Fixed
+
+- Indexing in several languages no longer empties the index. The table was labelled with the
+  languages in the order they were typed, then compared with them sorted: unless they were typed
+  in alphabetical order, as `french,english` is not, every indexing run dropped the table and
+  Nextcloud, believing the documents indexed, did not put them back. If you index in several
+  languages, run `occ fulltextsearch:reset` then `occ fulltextsearch:index` right after
+  updating, before the next indexing run.
+- With the language left on `auto`, the index is built and searched in the same language: the
+  instance one, that is `default_language` in `config.php`, or English when it is not set. The
+  search used to follow the language of the person searching, so a user who had picked another
+  one searched an English index with their own stemming and missed results.
+- A large spreadsheet or document no longer takes the indexing run down: at most 32 MB of each
+  file inside an Office archive is read, rather than all of it before the size limit was checked.
+- The settings panel no longer says the index was rebuilt when the language is saved. It now
+  says the new language applies once `occ fulltextsearch:reset` and `occ fulltextsearch:index`
+  have run.
+
 ## 0.1.3 — 2026-09-20
 
 ### Added

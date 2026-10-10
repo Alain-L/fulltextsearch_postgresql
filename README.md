@@ -14,8 +14,9 @@ Features:
 - **PDF and Office content, extracted by the app.** No external extraction
   service to install: PDFs and the usual office formats (`docx`, `xlsx`, `pptx`,
   `odt`, `ods`, `odp`) are read out of the box.
-- **The usual search filters**: by source, by file extension, within a folder,
-  and partial matching on file names.
+- **The usual search filters**: by source, by file extension, and partial matching
+  on file names. Searching within a folder works up to Nextcloud 33: the Files
+  content provider dropped that filter in version 34.
 
 Permissions are indexed with the content, so a search only ever matches what the
 person running it can access.
